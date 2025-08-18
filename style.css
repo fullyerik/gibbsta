@@ -167,6 +167,7 @@ body {
     border-radius: var(--radius-xl);
     border: 1px solid rgba(255, 255, 255, 0.2);
     transition: all var(--transition-base);
+    overflow: hidden;
 }
 
 .logo-icon:hover {
@@ -174,9 +175,11 @@ body {
     background: rgba(255, 255, 255, 0.2);
 }
 
-.logo-icon svg {
+.logo-icon img {
     width: 28px;
     height: 28px;
+    border-radius: var(--radius-md);
+    object-fit: cover;
 }
 
 .logo span {
@@ -557,9 +560,10 @@ body {
     z-index: 1;
 }
 
-.gibbsta-watermark svg {
+.gibbsta-watermark img {
     width: 24px;
     height: 24px;
+    border-radius: var(--radius-sm);
 }
 
 .post-input-text {
