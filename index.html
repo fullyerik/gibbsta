@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gibbsta - GIBB Social</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
@@ -12,7 +12,20 @@
         <!-- Header -->
         <header class="header">
             <div class="logo">
-                <i class="fas fa-graduation-cap"></i>
+                <div class="logo-icon">
+                    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+                                <stop offset="50%" style="stop-color:#EC4899;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#F97316;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M75 35 C85 35, 90 40, 90 50 C90 55, 88 58, 85 60 L85 60 C88 62, 90 65, 90 70 C90 80, 85 85, 75 85 L25 85 C15 85, 10 80, 10 70 L10 70 C10 65, 12 62, 15 60 C12 58, 10 55, 10 50 C10 40, 15 35, 25 35 L40 35 C45 25, 55 20, 65 25 C70 27, 73 30, 75 35 Z" fill="url(#logoGradient)" stroke="none"/>
+                        <circle cx="35" cy="50" r="8" fill="white"/>
+                        <path d="M20 65 C25 70, 35 75, 50 75 C65 75, 75 70, 80 65" stroke="white" stroke-width="4" fill="none" stroke-linecap="round"/>
+                    </svg>
+                </div>
                 <span>Gibbsta</span>
             </div>
             <div class="header-actions">
@@ -59,7 +72,17 @@
                 <!-- Post Creator -->
                 <div class="post-creator">
                     <div class="creator-header">
-                        <div class="profile-pic user-pic">JS</div>
+                        <div class="profile-pic user-pic">
+                            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="profile-logo">
+                                <defs>
+                                    <linearGradient id="profileGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+                                    </linearGradient>
+                                </defs>
+                                <text x="50" y="65" text-anchor="middle" fill="white" font-size="45" font-weight="bold" font-family="Arial, sans-serif">JS</text>
+                            </svg>
+                        </div>
                         <input type="text" placeholder="Was machst du gerade an der GIBB?" class="post-input-text" onclick="openPostModal()">
                     </div>
                     <div class="creator-actions">
@@ -300,6 +323,20 @@
     <!-- Loading Spinner -->
     <div id="loading" class="loading-overlay">
         <div class="spinner"></div>
+    </div>
+
+    <!-- Gibbsta Watermark -->
+    <div class="gibbsta-watermark">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="watermarkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:0.5" />
+                    <stop offset="50%" style="stop-color:#EC4899;stop-opacity:0.5" />
+                    <stop offset="100%" style="stop-color:#F97316;stop-opacity:0.5" />
+                </linearGradient>
+            </defs>
+            <path d="M75 35 C85 35, 90 40, 90 50 C90 55, 88 58, 85 60 L85 60 C88 62, 90 65, 90 70 C90 80, 85 85, 75 85 L25 85 C15 85, 10 80, 10 70 L10 70 C10 65, 12 62, 15 60 C12 58, 10 55, 10 50 C10 40, 15 35, 25 35 L40 35 C45 25, 55 20, 65 25 C70 27, 73 30, 75 35 Z" fill="url(#watermarkGradient)" stroke="none"/>
+        </svg>
     </div>
 
     <script src="script.js"></script>
