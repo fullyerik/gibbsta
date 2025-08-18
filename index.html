@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gibbsta - GIBB Social</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .icon {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .icon:hover {
+            transform: scale(1.1);
+        }
+
+        /* Navigation */
+        .nav {
+            display: flex;
+            background: white;
+            border-top: 1px solid #eee;
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 400px;
+            z-index: 99;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+
+        .nav-item {
+            flex: 1;
+            padding: 12px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            background: none;
+            font-size: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-item.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .nav-item:hover {
+            background: #f5f5f5;
+        }
+
+        .nav-item.active:hover {
+            background: #667eea;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+        }
+
+        /* Main Content */
+        .content {
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* Post Creation */
+        .post-creator {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .post-input {
+            width: 100%;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .post-input:hover {
+            border-color: #667eea;
+        }
+
+        .post-input input[type="file"] {
+            display: none;
+        }
+
+        .upload-text {
+            color: #666;
+            font-size: 16px;
+        }
+
+        /* Posts */
+        .post {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .post-header {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .profile-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .post-info h4 {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .post-info p {
+            margin: 2px 0 0 0;
+            color: #666;
+            font-size: 12px;
+        }
+
+        .post-image {
+            width: 100%;
+            height: 300px;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 18px;
+        }
+
+        .post-actions {
+            padding: 15px 20px;
+            display: flex;
+            gap: 20px;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #666;
+            transition: color 0.2s;
+        }
+
+        .action-btn:hover {
+            color: #667eea;
+        }
+
+        .action-btn.liked {
+            color: #e74c3c;
+        }
+
+        .post-caption {
+            padding: 0 20px 15px;
+            color: #333;
+        }
+
+        /* Chat */
+        .chat-list {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .chat-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .chat-item:hover {
+            background: #f8f9fa;
+        }
+
+        .chat-item:last-child {
+            border-bottom: none;
+        }
+
+        .chat-info h4 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .chat-info p {
+            margin: 2px 0 0 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .chat-time {
+            margin-left: auto;
+            color: #999;
+            font-size: 12px;
+        }
+
+        /* Profile */
+        .profile-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .profile-stats {
+            display: flex;
+            justify-content: space-around;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 300px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+
+        .btn:hover {
+            background: #5a6fd8;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #2ecc71;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 6px;
+            z-index: 1001;
+            display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .container {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">Gibbsta</div>
+            <div class="header-icons">
+                <div class="icon" onclick="showNotification('Nachrichten geöffnet!')">💬</div>
+                <div class="icon" onclick="showNotification('Benachrichtigungen!')">🔔</div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav">
+            <button class="nav-item active" onclick="showSection('feed')">
+                <div class="nav-icon">🏠</div>
+                <div>Feed</div>
+            </button>
+            <button class="nav-item" onclick="showSection('chat')">
+                <div class="nav-icon">💬</div>
+                <div>Chat</div>
+            </button>
+            <button class="nav-item" onclick="showSection('profile')">
+                <div class="nav-icon">👤</div>
+                <div>Profil</div>
+            </button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="content">
+            <!-- Feed Section -->
+            <section id="feed" class="section active">
+                <!-- Post Creator -->
+                <div class="post-creator">
+                    <div class="post-input" onclick="showUploadModal()">
+                        <input type="file" id="imageUpload" accept="image/*">
+                        <div class="upload-text">📸 Bild hochladen</div>
+                    </div>
+                </div>
+
+                <!-- Sample Posts -->
+                <article class="post">
+                    <div class="post-header">
+                        <div class="profile-pic">MS</div>
+                        <div class="post-info">
+                            <h4>Max Schüler</h4>
+                            <p>Informatik • vor 2h</p>
+                        </div>
+                    </div>
+                    <div class="post-image">🖼️ Bild wird hier angezeigt</div>
+                    <div class="post-actions">
+                        <button class="action-btn" onclick="toggleLike(this)">❤️ <span>12</span></button>
+                        <button class="action-btn" onclick="showNotification('Kommentare geöffnet!')">💬 <span>3</span></button>
+                        <button class="action-btn" onclick="showNotification('Geteilt!')">📤</button>
+                    </div>
+                    <div class="post-caption">
+                        Endlich Pause! Das Programmieren heute war echt anstrengend 😅 #gibb #informatik
+                    </div>
+                </article>
+
+                <article class="post">
+                    <div class="post-header">
+                        <div class="profile-pic">LM</div>
+                        <div class="post-info">
+                            <h4>Lisa Müller</h4>
+                            <p>KV • vor 4h</p>
+                        </div>
+                    </div>
+                    <div class="post-image">📚 Bücher und Notizen</div>
+                    <div class="post-actions">
+                        <button class="action-btn" onclick="toggleLike(this)">❤️ <span>8</span></button>
+                        <button class="action-btn" onclick="showNotification('Kommentare geöffnet!')">💬 <span>1</span></button>
+                        <button class="action-btn" onclick="showNotification('Geteilt!')">📤</button>
+                    </div>
+                    <div class="post-caption">
+                        Lernen für die Prüfung morgen... Wer noch? 📖 #prüfung #gibb
+                    </div>
+                </article>
+            </section>
+
+            <!-- Chat Section -->
+            <section id="chat" class="section">
+                <div class="chat-list">
+                    <div class="chat-item" onclick="showNotification('Chat mit Max geöffnet!')">
+                        <div class="profile-pic">MS</div>
+                        <div class="chat-info">
+                            <h4>Max Schüler</h4>
+                            <p>Hey, hast du die Hausaufgaben gemacht?</p>
+                        </div>
+                        <div class="chat-time">14:32</div>
+                    </div>
+                    <div class="chat-item" onclick="showNotification('Gruppenchat geöffnet!')">
+                        <div class="profile-pic">👥</div>
+                        <div class="chat-info">
+                            <h4>Informatik Klasse</h4>
+                            <p>Lisa: Wann ist nochmal die Abgabe?</p>
+                        </div>
+                        <div class="chat-time">13:45</div>
+                    </div>
+                    <div class="chat-item" onclick="showNotification('Chat mit Anna geöffnet!')">
+                        <div class="profile-pic">AS</div>
+                        <div class="chat-info">
+                            <h4>Anna Schmidt</h4>
+                            <p>Danke für deine Hilfe! 😊</p>
+                        </div>
+                        <div class="chat-time">12:18</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Profile Section -->
+            <section id="profile" class="section">
+                <div class="profile-header">
+                    <div class="profile-avatar">JS</div>
+                    <h2>Jan Schneider</h2>
+                    <p>Informatik • 2. Lehrjahr</p>
+                </div>
+                
+                <div class="profile-stats">
+                    <div class="stat">
+                        <div class="stat-number">24</div>
+                        <div class="stat-label">Posts</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">156</div>
+                        <div class="stat-label">Follower</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">89</div>
+                        <div class="stat-label">Folge ich</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Upload Modal -->
+    <div id="uploadModal" class="modal">
+        <div class="modal-content">
+            <h3>Bild hochladen</h3>
+            <p>Wähle ein Bild aus deiner Galerie</p>
+            <button class="btn" onclick="simulateUpload()">📸 Bild wählen</button>
+            <button class="btn" onclick="closeModal()" style="background: #95a5a6;">Abbrechen</button>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // Navigation
+        function showSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionName).classList.add('active');
+            
+            // Update navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        // Like functionality
+        function toggleLike(button) {
+            button.classList.toggle('liked');
+            const likeCount = button.querySelector('span');
+            let count = parseInt(likeCount.textContent);
+            
+            if (button.classList.contains('liked')) {
+                likeCount.textContent = count + 1;
+                showNotification('Bild geliked! ❤️');
+            } else {
+                likeCount.textContent = count - 1;
+                showNotification('Like entfernt');
+            }
+        }
+
+        // Upload modal
+        function showUploadModal() {
+            document.getElementById('uploadModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('uploadModal').style.display = 'none';
+        }
+
+        function simulateUpload() {
+            closeModal();
+            showNotification('Bild wird hochgeladen... 📤');
+            
+            setTimeout(() => {
+                showNotification('Bild erfolgreich hochgeladen! ✅');
+            }, 2000);
+        }
+
+        // Notifications
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // Sample interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add some interactive elements
+            console.log('Gibbsta Prototyp geladen! 🚀');
+        });
+    </script>
+</body>
+</html>
