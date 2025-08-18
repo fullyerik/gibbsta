@@ -99,28 +99,44 @@ Eine benutzerfreundliche Social Media Plattform, die speziell für die GIBB-Schu
 
 ## 🗓️ Roadmap
 
+### 📋 Offizieller Zeitplan (Modul 431)
+![Zeitplan Modul 431](https://via.placeholder.com/800x400/f8f9fa/333333?text=Hier+euer+Zeitplan+Bild+einf%C3%BCgen)
+
+> **Hinweis:** Ersetzt den Platzhalter-Link oben mit eurem hochgeladenen Zeitplan-Bild
+
+### 🚀 Gibbsta Development Timeline
+
 ```mermaid
 gantt
-    title Gibbsta Development Timeline
+    title Gibbsta Development Timeline (angepasst an Modul 431)
     dateFormat  YYYY-MM-DD
-    section Phase 1: Setup
-    Projektplanung        :done, p1, 2024-01-01, 2024-01-14
-    Environment Setup     :done, p2, 2024-01-08, 2024-01-21
     
-    section Phase 2: MVP
-    User Authentication   :active, p3, 2024-01-15, 2024-02-05
-    Basic Image Upload    :p4, 2024-01-22, 2024-02-12
-    Feed Implementation   :p5, 2024-02-06, 2024-02-26
+    section Vorarbeiten (KW 33-34)
+    Projektidee finden    :done, p1, 2024-08-12, 2024-08-18
+    Team bilden          :done, p2, 2024-08-19, 2024-08-25
+    Projektantrag        :active, p3, 2024-08-19, 2024-08-25
     
-    section Phase 3: Features
-    Chat System          :p6, 2024-02-13, 2024-03-05
-    Like & Comments      :p7, 2024-02-20, 2024-03-12
-    Notifications        :p8, 2024-03-06, 2024-03-26
+    section Initialisierung (KW 35-37)
+    Soll/Ist-Analyse     :p4, 2024-08-26, 2024-09-08
+    Ziele definieren     :p5, 2024-08-26, 2024-09-08
+    Anforderungen MindMap :p6, 2024-09-02, 2024-09-15
+    Projektstruktur      :p7, 2024-09-09, 2024-09-15
     
-    section Phase 4: Polish
-    Testing & Bug Fixes  :p9, 2024-03-13, 2024-04-02
-    Performance Tuning   :p10, 2024-03-20, 2024-04-09
-    Beta Release         :milestone, 2024-04-10, 0d
+    section Konzept (KW 38-39)
+    Lösungsplan zeichnen :p8, 2024-09-16, 2024-09-29
+    Realisierung planen  :p9, 2024-09-16, 2024-09-29
+    Tests planen         :p10, 2024-09-23, 2024-09-29
+    
+    section Realisierung (KW 40-42)
+    System bauen         :p11, 2024-09-30, 2024-10-20
+    System dokumentieren :p12, 2024-10-07, 2024-10-20
+    System testen        :p13, 2024-10-14, 2024-10-20
+    
+    section Einführung (KW 43-44)
+    Dokumentation fertig :p14, 2024-10-21, 2024-10-27
+    Abnahmetest         :p15, 2024-10-21, 2024-10-27
+    Präsentation erstellen :p16, 2024-10-28, 2024-11-03
+    Präsentation durchführen :milestone, 2024-11-01, 0d
 ```
 
 ---
