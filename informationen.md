@@ -297,6 +297,6 @@ Wir freuen uns über Beiträge! Bitte lies unsere [Contributing Guidelines](CONT
 
 **Entwickelt mit ❤️ von GIBB Studenten für GIBB Studenten**
 
-![GIBB Logo](https://via.placeholder.com/200x60/667eea/ffffff?text=GIBB)
+![GIBB Logo](https://i.ibb.co/zH8rMfZL/Screenshot-2025-08-18-133537.png)
 
 </div>
