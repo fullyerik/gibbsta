@@ -10,8 +10,23 @@
 <body>
     <h1>Welcome to Gibbsta</h1>
     <p>Gibbsta ist eine Website, die dir die möglichkeit gibt bilder zu posten und zu Kommentieren</p>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+        
+        // Zeige/Verstecke Elemente basierend auf Berechtigungen
+        if (hasPermission(currentUser, 'ban_users')) {
+            document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+        }
+        
+        if (hasPermission(currentUser, 'delete_comments')) {
+            document.querySelectorAll('.moderator-only').forEach(el => el.style.display = 'block');
+        }
+    });
+    </script>
 </body>
-</html> 
+</html>
 
 
 
