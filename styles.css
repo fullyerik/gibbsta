@@ -106,3 +106,29 @@ button:hover {
   background-color: #ffebe9;
   color: #ff4444;
 }
+
+.password-requirements {
+    text-align: left;
+    background-color: #f8f9fa;
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-size: 0.9em;
+}
+
+.password-requirements p {
+    color: #1c1e21;
+    margin: 0 0 5px 0;
+    font-weight: bold;
+}
+
+.password-requirements ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.password-requirements li {
+    color: #65676b;
+    margin: 3px 0;
+}

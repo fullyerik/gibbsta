@@ -23,7 +23,18 @@
       <div id="registerForm" class="form-section hidden">
         <h2>Registrieren</h2>
         <input type="text" id="regUser" placeholder="Benutzername">
+        <input type="email" id="regEmail" placeholder="E-Mail Adresse">
         <input type="password" id="regPass" placeholder="Passwort">
+        <div class="password-requirements">
+            <p>Passwort muss haben:</p>
+            <ul>
+                <li>• Mindestens 8 Zeichen</li>
+                <li>• Mindestens ein Großbuchstabe</li>
+                <li>• Mindestens ein Kleinbuchstabe</li>
+                <li>• Mindestens eine Zahl</li>
+                <li>• Mindestens ein Sonderzeichen (!@#$%^&*...)</li>
+            </ul>
+        </div>
         <button onclick="register()">Registrieren</button>
         <p class="switch-text">Bereits registriert? <a href="#" onclick="toggleForms()">Login</a></p>
       </div>
