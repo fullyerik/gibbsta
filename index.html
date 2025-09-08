@@ -3,20 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <title>Gibbsta - Login</title>
-    <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h2>Registrieren</h2>
-  <input type="text" id="regUser" placeholder="Benutzername">
-  <input type="password" id="regPass" placeholder="Passwort">
-  <button onclick="register()">Registrieren</button>
+  <div class="container">
+    <div class="logo">
+      <img src="https://i.ibb.co/Q7mG5wr3/Gibbsta-Logo-Haupt.png" alt="Gibbsta Logo">
+      <h1>Gibbsta</h1>
+    </div>
+    
+    <div class="login-box">
+      <div class="form-section">
+        <h2>Registrieren</h2>
+        <input type="text" id="regUser" placeholder="Benutzername">
+        <input type="password" id="regPass" placeholder="Passwort">
+        <button onclick="register()">Registrieren</button>
+      </div>
 
-  <h2>Login</h2>
-  <input type="text" id="logUser" placeholder="Benutzername">
-  <input type="password" id="logPass" placeholder="Passwort">
-  <button onclick="login()">Login</button>
+      <div class="form-section">
+        <h2>Login</h2>
+        <input type="text" id="logUser" placeholder="Benutzername">
+        <input type="password" id="logPass" placeholder="Passwort">
+        <button onclick="login()">Login</button>
+      </div>
 
-  <p id="message"></p>
-    <script src="script.js"></script>
+      <p id="message"></p>
+    </div>
+  </div>
+  <script src="script.js"></script>
 </body>
 </html>
