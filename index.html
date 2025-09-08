@@ -14,7 +14,7 @@
     <div class="login-box">
       <div id="loginForm" class="form-section">
         <h2>Login</h2>
-        <input type="text" id="logUser" placeholder="Benutzername">
+        <input type="text" id="logUser" placeholder="Benutzername oder E-Mail">
         <input type="password" id="logPass" placeholder="Passwort">
         <button onclick="login()">Login</button>
         <p class="switch-text">Noch kein Account? <a href="#" onclick="toggleForms()">Registrieren</a></p>
@@ -35,6 +35,41 @@
                 <li>• Mindestens ein Sonderzeichen (!@#$%^&*...)</li>
             </ul>
         </div>
+
+        <div class="terms-container">
+            <div class="age-selection">
+                <label>Wie alt bist du?</label>
+                <select id="userAge" onchange="checkAge()">
+                    <option value="">Bitte wählen...</option>
+                    <option value="under13">Unter 13</option>
+                    <option value="13-17">13-17</option>
+                    <option value="18plus">18 oder älter</option>
+                </select>
+            </div>
+            
+            <div class="terms-checkboxes">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="agbCheckbox">
+                    <label for="agbCheckbox">Ich akzeptiere die <a href="agb.html" target="_blank">AGB</a> von Gibbsta.</label>
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="privacyCheckbox">
+                    <label for="privacyCheckbox">Ich habe die <a href="datenschutz.html" target="_blank">Datenschutzerklärung</a> gelesen und stimme der beschriebenen Datenverarbeitung zu.</label>
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="ageConfirmCheckbox">
+                    <label for="ageConfirmCheckbox">Ich bestätige, dass ich mindestens 13 Jahre alt bin.</label>
+                </div>
+                
+                <div class="checkbox-group" id="parentalConsentGroup" style="display: none;">
+                    <input type="checkbox" id="parentalConsentCheckbox">
+                    <label for="parentalConsentCheckbox">Ich bestätige, dass meine Erziehungsberechtigten der Nutzung zugestimmt haben.</label>
+                </div>
+            </div>
+        </div>
+        
         <button onclick="register()">Registrieren</button>
         <p class="switch-text">Bereits registriert? <a href="#" onclick="toggleForms()">Login</a></p>
       </div>
