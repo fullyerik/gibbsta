@@ -13,18 +13,20 @@
     </div>
     
     <div class="login-box">
-      <div class="form-section">
-        <h2>Registrieren</h2>
-        <input type="text" id="regUser" placeholder="Benutzername">
-        <input type="password" id="regPass" placeholder="Passwort">
-        <button onclick="register()">Registrieren</button>
-      </div>
-
-      <div class="form-section">
+      <div id="loginForm" class="form-section">
         <h2>Login</h2>
         <input type="text" id="logUser" placeholder="Benutzername">
         <input type="password" id="logPass" placeholder="Passwort">
         <button onclick="login()">Login</button>
+        <p class="switch-text">Noch kein Account? <a href="#" onclick="toggleForms()">Registrieren</a></p>
+      </div>
+
+      <div id="registerForm" class="form-section hidden">
+        <h2>Registrieren</h2>
+        <input type="text" id="regUser" placeholder="Benutzername">
+        <input type="password" id="regPass" placeholder="Passwort">
+        <button onclick="register()">Registrieren</button>
+        <p class="switch-text">Bereits registriert? <a href="#" onclick="toggleForms()">Login</a></p>
       </div>
 
       <p id="message"></p>

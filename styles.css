@@ -72,7 +72,37 @@ button:hover {
   background-color: #166fe5;
 }
 
+.hidden {
+  display: none;
+}
+
+.switch-text {
+  margin-top: 15px;
+  color: #65676b;
+  font-size: 0.9em;
+}
+
+.switch-text a {
+  color: #1877f2;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.switch-text a:hover {
+  text-decoration: underline;
+}
+
 #message {
+  padding: 10px;
+  border-radius: 4px;
+}
+
+#message.success {
+  background-color: #e7f3ff;
+  color: #1877f2;
+}
+
+#message.error {
+  background-color: #ffebe9;
   color: #ff4444;
-  margin-top: 10px;
 }
