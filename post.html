@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gibbsta - Neuer Beitrag</title>
+    <link rel="stylesheet" href="post-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="nav-left"></div>
+        <div class="nav-center">
+            <img src="https://i.ibb.co/Q7mG5wr3/Gibbsta-Logo-Haupt.png" alt="Gibbsta Logo" class="nav-logo">
+        </div>
+        <div class="nav-right"></div>
+    </nav>
+
+    <main class="content">
+        <div class="post-container">
+            <h2>Neuer Beitrag</h2>
+            
+            <div class="upload-section">
+                <div id="imagePreview" class="image-preview">
+                    <i class="fas fa-image"></i>
+                    <p>Klicke hier oder ziehe ein Bild hierher</p>
+                </div>
+                <input type="file" id="imageInput" accept="image/*" hidden>
+            </div>
+
+            <div class="caption-section">
+                <textarea id="captionInput" placeholder="Schreibe eine Beschreibung..."></textarea>
+                <div class="caption-tools">
+                    <span id="charCount">0/2200</span>
+                </div>
+            </div>
+
+            <div class="post-options">
+                <button class="post-button" onclick="createPost()">Posten</button>
+                <button class="cancel-button" onclick="window.location.href='home.html'">Abbrechen</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="nav-container">
+            <button class="nav-item" onclick="location.href='home.html'">
+                <i class="fas fa-home"></i>
+            </button>
+            <button class="nav-item" onclick="location.href='search.html'">
+                <i class="fas fa-search"></i>
+            </button>
+            <button class="nav-item plus-btn active">
+                <i class="fas fa-plus"></i>
+            </button>
+            <button class="nav-item" onclick="location.href='homepage.html'">
+                <i class="fas fa-user"></i>
+            </button>
+        </div>
+    </nav>
+
+    <script src="post-script.js"></script>
+</body>
+</html>
