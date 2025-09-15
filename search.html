@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gibbsta - Suche</title>
+    <link rel="stylesheet" href="search-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="nav-left"></div>
+        <div class="nav-center">
+            <img src="https://i.ibb.co/Q7mG5wr3/Gibbsta-Logo-Haupt.png" alt="Gibbsta Logo" class="nav-logo">
+        </div>
+        <div class="nav-right"></div>
+    </nav>
+
+    <div class="search-container">
+        <div class="search-header">
+            <h3>Suchen</h3>
+            <button class="close-search" onclick="goBack()">×</button>
+        </div>
+        
+        <div class="search-input-container">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Suche nach Benutzern oder Beiträgen..." oninput="handleSearch()">
+        </div>
+
+        <div class="search-sections">
+            <button class="search-tab active" onclick="switchSearchTab('accounts')">Accounts</button>
+            <button class="search-tab" onclick="switchSearchTab('posts')">Beiträge</button>
+        </div>
+
+        <div id="searchResults" class="search-results">
+            <!-- Suchergebnisse werden hier dynamisch eingefügt -->
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="nav-container">
+            <button class="nav-item" onclick="location.href='home.html'">
+                <i class="fas fa-home"></i>
+            </button>
+            <button class="nav-item active">
+                <i class="fas fa-search"></i>
+            </button>
+            <button class="nav-item plus-btn" onclick="location.href='post.html'">
+                <i class="fas fa-plus"></i>
+            </button>
+            <button class="nav-item" onclick="location.href='homepage.html'">
+                <i class="fas fa-user"></i>
+            </button>
+        </div>
+    </nav>
+
+    <script src="search-script.js"></script>
+</body>
+</html>

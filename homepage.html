@@ -30,20 +30,89 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
 
-        .nav {
-            max-width: 975px;
-            margin: 0 auto;
+        .top-nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            height: 60px;
+            background-color: white;
+            border-bottom: 1px solid #dbdbdb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            box-sizing: border-box;
+            z-index: 100;
+        }
+
+        .nav-center {
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 0 20px;
         }
 
-        .logo {
-            font-size: 32px;
-            font-weight: 700;
+        .nav-logo {
+            height: 40px;
+            object-fit: contain;
+        }
+
+        .nav-left, .nav-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-right {
+            gap: 16px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: transparent;
+            border: none;
+        }
+
+        .nav-item:hover {
+            background: #f5f5f5;
+        }
+
+        .nav-item.active {
+            background: #262626;
+        }
+
+        .nav-item.active svg {
+            color: #fff;
+        }
+
+        .nav-item svg {
+            width: 24px;
+            height: 24px;
             color: #262626;
-            letter-spacing: -1px;
+        }
+
+        /* Plus Button spezielle Styles */
+        .nav-item.plus-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: 2px solid #262626;
+            background: transparent;
+        }
+
+        .nav-item.plus-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .nav-item.plus-btn svg {
+            width: 16px;
+            height: 16px;
+            stroke-width: 3;
         }
 
         .main-content {
@@ -52,6 +121,7 @@
             margin: 0 auto;
             padding: 40px 20px 100px;
             width: 100%;
+            margin-top: 80px;
         }
 
         .profile-section {
@@ -210,66 +280,77 @@
 
         .posts-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(293px, 1fr));
-            gap: 28px;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
         }
 
         .post {
-            background: #fff;
+            background: white;
             border-radius: 8px;
             overflow: hidden;
-            transition: all 0.3s ease;
-            border: 1px solid #dbdbdb;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
         }
 
         .post:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
         }
 
         .post-image {
             width: 100%;
-            height: 293px;
+            height: 250px;
             object-fit: cover;
         }
 
         .post-content {
-            padding: 16px;
+            padding: 12px;
         }
 
         .post-caption {
-            line-height: 1.4;
-            color: #262626;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             font-size: 14px;
         }
 
         .post-meta {
+            padding: 0 12px 12px;
             display: flex;
             justify-content: space-between;
+            color: #8e8e8e;
+            font-size: 12px;
+            border-top: 1px solid #dbdbdb;
+            margin-top: 8px;
+            padding-top: 12px;
+        }
+
+        .post-header {
+            display: flex;
             align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #dbdbdb;
         }
 
-        .post-date {
-            color: #8e8e8e;
-            font-size: 12px;
+        .post-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 12px;
         }
 
-        .delete-post {
-            background: transparent;
-            color: #8e8e8e;
-            border: none;
-            cursor: pointer;
-            font-size: 12px;
-            padding: 4px 8px;
-            border-radius: 4px;
-            transition: all 0.2s ease;
+        .post-username {
+            font-weight: 600;
+            color: #262626;
+            font-size: 14px;
         }
 
-        .delete-post:hover {
-            background: #f5f5f5;
-            color: #ed4956;
+        .caption-username {
+            font-weight: 600;
+            color: #262626;
+            margin-right: 6px;
+        }
+
+        .caption-text {
+            color: #262626;
         }
 
         .bottom-nav {
@@ -291,183 +372,179 @@
             align-items: center;
         }
 
-        .nav-item {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            background: transparent;
-            border: none;
+        .hidden {
+            display: none;
         }
 
-        .nav-item:hover {
-            background: #f5f5f5;
-        }
-
-        .nav-item.active {
-            background: #262626;
-        }
-
-        .nav-item.active svg {
-            color: #fff;
-        }
-
-        .nav-item svg {
-            width: 24px;
-            height: 24px;
-            color: #262626;
-        }
-
-        /* Plus Button spezielle Styles */
-        .nav-item.plus-btn {
-            width: 24px;
-            height: 24px;
-            border-radius: 4px;
-            border: 2px solid #262626;
-            background: transparent;
-        }
-
-        .nav-item.plus-btn:hover {
-            background: #f5f5f5;
-        }
-
-        .nav-item.plus-btn svg {
-            width: 16px;
-            height: 16px;
-            stroke-width: 3;
-        }
-
+        /* Neues Modal Design */
         .modal {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.65);
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            animation: modalFadeIn 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
         }
 
-        @keyframes modalFadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        .modal.show {
+            opacity: 1;
+            visibility: visible;
         }
 
         .modal-content {
-            background: #fff;
-            padding: 32px;
+            background: white;
             border-radius: 12px;
-            max-width: 500px;
             width: 90%;
-            border: 1px solid #dbdbdb;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-            animation: modalSlideIn 0.4s ease;
+            max-width: 500px;
+            transform: scale(0.7);
+            transition: all 0.3s ease;
+            overflow: hidden;
         }
 
-        @keyframes modalSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .modal.show .modal-content {
+            transform: scale(1);
         }
 
-        .modal-title {
-            font-size: 20px;
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #dbdbdb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 18px;
             font-weight: 600;
-            margin-bottom: 24px;
-            text-align: center;
-            color: #262626;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #8e8e8e;
+            padding: 0;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            padding: 16px 20px;
+            border-bottom: 1px solid #dbdbdb;
         }
 
-        .form-group label {
+        .profile-photo-edit {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .profile-photo-edit img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .profile-photo-edit:hover .photo-overlay {
+            opacity: 1;
+        }
+
+        .photo-edit-label {
+            color: white;
+            cursor: pointer;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .photo-edit-label i {
             display: block;
+            font-size: 24px;
             margin-bottom: 8px;
-            font-weight: 500;
-            color: #262626;
         }
 
-        .form-group input,
-        .form-group textarea {
+        .form-input {
             width: 100%;
             padding: 12px;
-            background: #fafafa;
             border: 1px solid #dbdbdb;
             border-radius: 6px;
-            color: #262626;
             font-size: 14px;
-            font-family: inherit;
-            transition: all 0.2s ease;
+            margin-top: 8px;
         }
 
-        .form-group input:focus,
-        .form-group textarea:focus {
-            outline: none;
+        .form-input:focus {
             border-color: #0095f6;
-            background: #fff;
+            outline: none;
         }
 
-        .form-group textarea {
-            height: 80px;
-            resize: vertical;
+        textarea.form-input {
+            resize: none;
+            min-height: 100px;
         }
 
-        .modal-buttons {
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-            margin-top: 24px;
-        }
-
-        .cancel-btn {
-            background: transparent;
+        .bio-counter {
+            display: block;
+            text-align: right;
             color: #8e8e8e;
-            border: 1px solid #dbdbdb;
-            padding: 12px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s ease;
+            font-size: 12px;
+            margin-top: 4px;
         }
 
-        .cancel-btn:hover {
-            border-color: #262626;
-            color: #262626;
+        .modal-footer {
+            padding: 16px 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .save-btn, .cancel-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
 
         .save-btn {
             background: #0095f6;
-            color: #fff;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s ease;
+            color: white;
         }
 
         .save-btn:hover {
             background: #1877f2;
         }
 
-        .hidden {
-            display: none;
+        .cancel-btn {
+            background: #dbdbdb;
+            color: #262626;
+        }
+
+        .cancel-btn:hover {
+            background: #c7c7c7;
         }
 
         @media (max-width: 768px) {
@@ -515,12 +592,125 @@
                 gap: 24px;
             }
         }
+
+        .post-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 8px;
+        }
+
+        .edit-btn, .delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px 8px;
+            color: #8e8e8e;
+            transition: color 0.2s ease;
+        }
+
+        .edit-btn:hover {
+            color: #0095f6;
+        }
+
+        .delete-btn:hover {
+            color: #ed4956;
+        }
+
+        /* Styles für das Editieren des Profils */
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #262626;
+        }
+
+        .profile-photo-edit {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 16px;
+        }
+
+        .photo-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .photo-edit-label {
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .bio-counter {
+            display: block;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #8e8e8e;
+            text-align: right;
+        }
+
+        /* Responsive Styles für das Editieren des Profils */
+        @media (max-width: 768px) {
+            .modal-content {
+                width: 95%;
+                padding: 16px;
+            }
+
+            .profile-photo-edit {
+                width: 120px;
+                height: 120px;
+            }
+
+            .bio-counter {
+                font-size: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .modal-content {
+                padding: 12px;
+            }
+
+            .profile-photo-edit {
+                width: 100px;
+                height: 100px;
+            }
+
+            .bio-counter {
+                font-size: 10px;
+            }
+        }
     </style>
 </head>
 <body>
 <header class="header">
-    <nav class="nav">
-        <div class="logo">GIBBSTA</div>
+    <nav class="top-nav">
+        <div class="nav-left"></div>
+        <div class="nav-center">
+            <img src="https://i.ibb.co/Q7mG5wr3/Gibbsta-Logo-Haupt.png" alt="Gibbsta Logo" class="nav-logo">
+        </div>
+        <div class="nav-right"></div>
     </nav>
 </header>
 
@@ -580,7 +770,7 @@
         </button>
 
         <!-- Such Icon (Mitte) -->
-        <button class="nav-item">
+        <button class="nav-item" onclick="location.href='search.html'">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="11" cy="11" r="8"/>
                 <path d="m21 21-4.35-4.35"/>
@@ -588,7 +778,7 @@
         </button>
 
         <!-- Plus Button (wie Instagram) -->
-        <button class="nav-item plus-btn" onclick="openPostModal()">
+        <button class="nav-item plus-btn" onclick="location.href='post.html'">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -608,52 +798,43 @@
 <!-- Modal für Profil bearbeiten -->
 <div id="editProfileModal" class="modal hidden">
     <div class="modal-content">
-        <h3 class="modal-title">Profil bearbeiten</h3>
+        <div class="modal-header">
+            <h3>Profil bearbeiten</h3>
+            <button class="close-modal" onclick="closeEditModal()">&times;</button>
+        </div>
         <form id="editProfileForm">
             <div class="form-group">
-                <label for="editProfilePhoto">Profilbild:</label>
-                <input type="file" id="editProfilePhoto" accept="image/*">
+                <div class="profile-photo-edit">
+                    <img id="previewProfilePhoto" src="https://via.placeholder.com/150/dbdbdb/262626?text=FD" alt="Profilbild">
+                    <div class="photo-overlay">
+                        <label for="editProfilePhoto" class="photo-edit-label">
+                            <i class="fas fa-camera"></i>
+                            Foto ändern
+                        </label>
+                    </div>
+                </div>
+                <input type="file" id="editProfilePhoto" accept="image/*" hidden>
             </div>
 
             <div class="form-group">
-                <label for="editUsername">Benutzername:</label>
-                <input type="text" id="editUsername" value="Fullydefense">
+                <label for="editUsername">Benutzername</label>
+                <input type="text" id="editUsername" class="form-input">
             </div>
 
             <div class="form-group">
-                <label for="editDisplayName">Name:</label>
-                <input type="text" id="editDisplayName" value="Erik Weber">
+                <label for="editDisplayName">Name</label>
+                <input type="text" id="editDisplayName" class="form-input">
             </div>
 
             <div class="form-group">
-                <label for="editBio">Bio:</label>
-                <textarea id="editBio">Software Developer & Content Creator&#10;📍 Schweiz&#10;🎯 Building the future</textarea>
+                <label for="editBio">Bio</label>
+                <textarea id="editBio" class="form-input" rows="4"></textarea>
+                <span class="bio-counter">0/150</span>
             </div>
 
-            <div class="modal-buttons">
+            <div class="modal-footer">
                 <button type="button" class="cancel-btn" onclick="closeEditModal()">Abbrechen</button>
                 <button type="submit" class="save-btn">Speichern</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Modal für neuen Beitrag -->
-<div id="postModal" class="modal hidden">
-    <div class="modal-content">
-        <h3 class="modal-title">Neuen Beitrag erstellen</h3>
-        <form id="postForm">
-            <div class="form-group">
-                <label for="postImage">Bild auswählen:</label>
-                <input type="file" id="postImage" accept="image/*" required>
-            </div>
-            <div class="form-group">
-                <label for="postCaption">Bildunterschrift:</label>
-                <textarea id="postCaption" placeholder="Schreibe eine Bildunterschrift..."></textarea>
-            </div>
-            <div class="modal-buttons">
-                <button type="button" class="cancel-btn" onclick="closePostModal()">Abbrechen</button>
-                <button type="submit" class="add-post-btn">Posten</button>
             </div>
         </form>
     </div>
@@ -670,27 +851,46 @@
 
     // Edit Profile Modal
     function openEditModal() {
+        const modal = document.getElementById('editProfileModal');
         document.getElementById('editUsername').value = document.getElementById('username').textContent;
         document.getElementById('editDisplayName').value = document.getElementById('displayName').textContent;
         document.getElementById('editBio').value = document.getElementById('bio').innerHTML.replace(/<br>/g, '\n');
-
-        document.getElementById('editProfileModal').classList.remove('hidden');
+        document.getElementById('previewProfilePhoto').src = document.getElementById('profilePhoto').src;
+        
+        modal.classList.remove('hidden');
+        setTimeout(() => modal.classList.add('show'), 10);
     }
 
     function closeEditModal() {
-        document.getElementById('editProfileModal').classList.add('hidden');
+        const modal = document.getElementById('editProfileModal');
+        modal.classList.remove('show');
+        setTimeout(() => modal.classList.add('hidden'), 300);
     }
 
-    // Profile Photo Upload (direkt ohne Vorschau)
+    // Bildvorschau für Profilfoto
     document.getElementById('editProfilePhoto').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                // Speichere das neue Bild temporär für das Speichern
-                document.getElementById('editProfilePhoto').dataset.newImage = e.target.result;
+                document.getElementById('previewProfilePhoto').src = e.target.result;
             };
             reader.readAsDataURL(file);
+        }
+    });
+
+    // Bio Zeichenzähler
+    document.getElementById('editBio').addEventListener('input', function(e) {
+        const maxLength = 150;
+        const currentLength = e.target.value.length;
+        const counter = document.querySelector('.bio-counter');
+        counter.textContent = `${currentLength}/${maxLength}`;
+        
+        if (currentLength > maxLength) {
+            e.target.value = e.target.value.slice(0, maxLength);
+            counter.style.color = '#ed4956';
+        } else {
+            counter.style.color = '#8e8e8e';
         }
     });
 
@@ -758,9 +958,16 @@
             const postElement = document.createElement('div');
             postElement.className = 'post';
             postElement.innerHTML = `
+                <div class="post-header">
+                    <img src="default-avatar.png" alt="User Avatar" class="post-avatar">
+                    <span class="post-username">${post.username}</span>
+                </div>
                 <img src="${post.image}" alt="Post" class="post-image">
                 <div class="post-content">
-                    <p class="post-caption">${post.caption}</p>
+                    <div class="post-caption">
+                        <span class="caption-username">${post.username}</span>
+                        <span class="caption-text">${post.caption}</span>
+                    </div>
                     <div class="post-meta">
                         <span class="post-date">${post.date}</span>
                         <button class="delete-post" onclick="deletePost(${post.id})">Löschen</button>
@@ -773,9 +980,57 @@
 
     // Post löschen
     function deletePost(postId) {
-        posts = posts.filter(post => post.id !== postId);
-        renderPosts();
-        updatePostCount();
+        if (confirm('Möchtest du diesen Beitrag wirklich löschen?')) {
+            let posts = JSON.parse(localStorage.getItem('posts') || '[]');
+            posts = posts.filter(post => post.id !== postId);
+            localStorage.setItem('posts', JSON.stringify(posts));
+            loadPosts();
+        }
+    }
+
+    function editPost(postId) {
+        const posts = JSON.parse(localStorage.getItem('posts') || '[]');
+        const post = posts.find(p => p.id === postId);
+        
+        if (!post) return;
+
+        // Öffne das Bearbeitungsmodal
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <h3>Beitrag bearbeiten</h3>
+                <textarea id="editCaption" class="edit-caption">${post.caption}</textarea>
+                <div class="modal-buttons">
+                    <button onclick="saveEdit(${postId})" class="save-btn">Speichern</button>
+                    <button onclick="closeEditModal()" class="cancel-btn">Abbrechen</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    function saveEdit(postId) {
+        const newCaption = document.getElementById('editCaption').value;
+        let posts = JSON.parse(localStorage.getItem('posts') || '[]');
+        
+        posts = posts.map(post => {
+            if (post.id === postId) {
+                return { ...post, caption: newCaption };
+            }
+            return post;
+        });
+        
+        localStorage.setItem('posts', JSON.stringify(posts));
+        closeEditModal();
+        loadPosts();
+    }
+
+    function closeEditModal() {
+        const modal = document.querySelector('.modal');
+        if (modal) {
+            modal.remove();
+        }
     }
 
     // Post Anzahl aktualisieren
@@ -813,8 +1068,66 @@
         });
     });
 
-    // Initial laden
-    updatePostCount();
+    // Funktion zum Laden und Anzeigen der Posts
+    function loadPosts() {
+        const postsContainer = document.querySelector('.posts-grid');
+        const posts = JSON.parse(localStorage.getItem('posts') || '[]');
+        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+        
+        postsContainer.innerHTML = '';
+        
+        posts.forEach(post => {
+            // Prüfe ob der Post vom aktuellen User ist
+            const isOwnPost = post.username === currentUser?.username;
+            
+            const postElement = `
+                <div class="post" data-post-id="${post.id}">
+                    <div class="post-header">
+                        <img src="default-avatar.png" alt="User Avatar" class="post-avatar">
+                        <span class="post-username">${post.username}</span>
+                        ${isOwnPost ? `
+                            <div class="post-actions">
+                                <button onclick="editPost(${post.id})" class="edit-btn">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="deletePost(${post.id})" class="delete-btn">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <img src="${post.image}" alt="Post" class="post-image">
+                    <div class="post-content">
+                        <div class="post-caption">
+                            <span class="caption-username">${post.username}</span>
+                            <span class="caption-text">${post.caption}</span>
+                        </div>
+                        <div class="post-meta">
+                            <span class="post-date">${formatDate(post.date)}</span>
+                            <span class="post-likes">${post.likes} Likes</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            postsContainer.innerHTML += postElement;
+        });
+    }
+
+    // Datum formatieren
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('de-DE', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    }
+
+    // Lade Posts beim Seitenaufruf
+    document.addEventListener('DOMContentLoaded', loadPosts);
+
+    // Entferne den "Beitrag erstellen" Button aus der homepage.html
+    document.querySelector('.add-post-btn')?.remove();
 </script>
 </body>
 </html>
