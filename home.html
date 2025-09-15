@@ -14,18 +14,22 @@
         </div>
         <div class="nav-center">
             <div class="notifications">
-                <i class="fas fa-inbox"></i>
-                <span class="notification-badge">3</span>
+                <a href="mitteilungen.html" style="color: inherit; text-decoration: none;">
+                    <i class="fas fa-inbox"></i>
+                    <span class="notification-badge">3</span>
+                </a>
             </div>
             <div class="notifications">
-                <i class="fas fa-heart"></i>
-                <span class="notification-badge">5</span>
+                <a href="posteingang.html" style="color: inherit; text-decoration: none;">
+                    <i class="fas fa-heart"></i>
+                    <span class="notification-badge">5</span>
+                </a>
             </div>
         </div>
         <div class="nav-right">
             <button class="feed-toggle active">Für dich</button>
-            <button class="feed-toggle">Gefolgt</button>
-            <button class="feed-toggle">Favoriten</button>
+            <button class="feed-toggle" onclick="window.location.href='following.html'">Gefolgt</button>
+            <button class="feed-toggle" onclick="window.location.href='favorite.html'">Favoriten</button>
         </div>
     </nav>
 

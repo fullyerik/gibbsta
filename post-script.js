@@ -70,6 +70,7 @@ function handleImageUpload(file) {
 function createPost() {
     const imagePreview = document.getElementById('imagePreview');
     const caption = document.getElementById('captionInput').value;
+    const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
     
     // Prüfe ob ein Bild ausgewählt wurde
     if (!imagePreview.querySelector('img')) {
@@ -86,11 +87,12 @@ function createPost() {
     // Erstelle neuen Post
     const newPost = {
         id: Date.now(),
-        username: JSON.parse(sessionStorage.getItem('currentUser')).username,
+        username: currentUser?.username || 'Fullydefense',
         image: imageData,
         caption: caption,
         date: new Date().toISOString(),
-        likes: 0
+        likes: 0,
+        userAvatar: 'default-avatar.png'
     };
     
     // Füge neuen Post am Anfang des Arrays hinzu
