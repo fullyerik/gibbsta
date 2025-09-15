@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Posteingang - GIBBSTA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #fafafa;
+            color: #262626;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: #fff;
+            border-bottom: 1px solid #dbdbdb;
+            padding: 16px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .nav {
+            max-width: 935px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .back-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .back-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .back-btn svg {
+            width: 24px;
+            height: 24px;
+            color: #262626;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #262626;
+        }
+
+        .mark-all-btn {
+            background: transparent;
+            color: #0095f6;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .mark-all-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .main-content {
+            flex: 1;
+            max-width: 935px;
+            margin: 0 auto;
+            padding: 20px;
+            width: 100%;
+        }
+
+        .search-section {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #dbdbdb;
+        }
+
+        .search-container {
+            position: relative;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 14px 20px 14px 50px;
+            border: 1px solid #dbdbdb;
+            border-radius: 25px;
+            background: #fafafa;
+            font-size: 14px;
+            color: #262626;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #0095f6;
+            background: #fff;
+            box-shadow: 0 0 10px rgba(0, 149, 246, 0.1);
+        }
+
+        .search-input::placeholder {
+            color: #8e8e8e;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            color: #8e8e8e;
+        }
+
+        .categories-nav {
+            background: #fff;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #dbdbdb;
+            overflow-x: auto;
+        }
+
+        .categories-list {
+            display: flex;
+            padding: 16px 20px;
+            gap: 8px;
+            min-width: max-content;
+        }
+
+        .category-btn {
+            background: transparent;
+            border: 1px solid #dbdbdb;
+            color: #8e8e8e;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+        }
+
+        .category-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .category-btn.active {
+            background: #0095f6;
+            color: white;
+            border-color: #0095f6;
+        }
+
+        .category-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #ed4956;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 18px;
+        }
+
+        .inbox-section {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #dbdbdb;
+            overflow: hidden;
+            min-height: 400px;
+        }
+
+        .section-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #dbdbdb;
+            background: #fafafa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #262626;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .notifications-count {
+            font-size: 14px;
+            color: #8e8e8e;
+        }
+
+        .notifications-list {
+            padding: 0;
+        }
+
+        .notification-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 16px 24px;
+            border-bottom: 1px solid #efefef;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .notification-item:hover {
+            background: #fafafa;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-item.unread {
+            background: #f8f9ff;
+            border-left: 3px solid #0095f6;
+        }
+
+        .notification-item.unread:hover {
+            background: #f0f2ff;
+        }
+
+        .notification-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #dbdbdb;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .notification-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .notification-icon svg {
+            width: 20px;
+            height: 20px;
+            color: #8e8e8e;
+        }
+
+        .notification-icon.like {
+            background: #ffe6e6;
+        }
+
+        .notification-icon.like svg {
+            color: #ed4956;
+        }
+
+        .notification-icon.comment {
+            background: #e6f3ff;
+        }
+
+        .notification-icon.comment svg {
+            color: #0095f6;
+        }
+
+        .notification-icon.follow {
+            background: #e6ffe6;
+        }
+
+        .notification-icon.follow svg {
+            color: #00ba7c;
+        }
+
+        .notification-icon.mention {
+            background: #fff3e6;
+        }
+
+        .notification-icon.mention svg {
+            color: #ff8c00;
+        }
+
+        .notification-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notification-text {
+            font-size: 14px;
+            line-height: 1.4;
+            color: #262626;
+            margin-bottom: 4px;
+        }
+
+        .notification-text .username {
+            font-weight: 600;
+            color: #262626;
+        }
+
+        .notification-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #8e8e8e;
+        }
+
+        .notification-time {
+            font-size: 12px;
+            color: #8e8e8e;
+        }
+
+        .notification-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .action-btn {
+            background: #0095f6;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: #1877f2;
+        }
+
+        .action-btn.secondary {
+            background: transparent;
+            color: #8e8e8e;
+            border: 1px solid #dbdbdb;
+        }
+
+        .action-btn.secondary:hover {
+            background: #f5f5f5;
+            color: #262626;
+        }
+
+        .post-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            object-fit: cover;
+            border: 1px solid #dbdbdb;
+            margin-left: 8px;
+            flex-shrink: 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 24px;
+            color: #8e8e8e;
+        }
+
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #262626;
+        }
+
+        .empty-description {
+            font-size: 14px;
+            line-height: 1.5;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px 24px;
+            color: #8e8e8e;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 16px;
+            }
+
+            .categories-list {
+                padding: 12px 16px;
+            }
+
+            .section-header {
+                padding: 16px 20px;
+            }
+
+            .notification-item {
+                padding: 12px 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav {
+                padding: 0 16px;
+            }
+
+            .page-title {
+                font-size: 18px;
+            }
+
+            .search-section {
+                padding: 20px;
+            }
+
+            .notification-avatar,
+            .notification-icon {
+                width: 36px;
+                height: 36px;
+                margin-right: 10px;
+            }
+
+            .notification-text {
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <button class="back-btn" onclick="navigateToHome()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m15 18-6-6 6-6"/>
+                </svg>
+            </button>
+            <h1 class="page-title">Posteingang</h1>
+            <button class="mark-all-btn" onclick="markAllAsRead()">Alle als gelesen markieren</button>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <div class="search-section">
+            <div class="search-container">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/>
+                    <path d="m21 21-4.35-4.35"/>
+                </svg>
+                <input type="text" class="search-input" placeholder="Durchsuche deine Benachrichtigungen..." id="searchInput">
+            </div>
+        </div>
+
+        <div class="categories-nav">
+            <div class="categories-list">
+                <button class="category-btn active" data-category="all">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>
+                    </svg>
+                    Alle
+                    <span class="notification-badge" id="allBadge">0</span>
+                </button>
+                <button class="category-btn" data-category="likes">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                    Likes
+                    <span class="notification-badge" id="likesBadge">0</span>
+                </button>
+                <button class="category-btn" data-category="comments">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                    </svg>
+                    Kommentare
+                    <span class="notification-badge" id="commentsBadge">0</span>
+                </button>
+                <button class="category-btn" data-category="followers">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                    Follower
+                    <span class="notification-badge" id="followersBadge">0</span>
+                </button>
+                <button class="category-btn" data-category="mentions">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="12" cy="12" r="4"/>
+                        <path d="M12 2v2"/>
+                        <path d="M12 20v2"/>
+                        <path d="M4.93 4.93l1.41 1.41"/>
+                        <path d="M17.66 17.66l1.41 1.41"/>
+                        <path d="M2 12h2"/>
+                        <path d="M20 12h2"/>
+                        <path d="M6.34 17.66l-1.41 1.41"/>
+                        <path d="M19.07 4.93l-1.41 1.41"/>
+                    </svg>
+                    Erwähnungen
+                    <span class="notification-badge" id="mentionsBadge">0</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="inbox-section">
+            <div class="section-header">
+                <h2 class="section-title" id="sectionTitle">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>
+                    </svg>
+                    Alle Benachrichtigungen
+                </h2>
+                <p class="notifications-count" id="notificationsCount">0 Benachrichtigungen</p>
+            </div>
+            
+            <div class="notifications-list" id="notificationsList">
+                <!-- Empty State -->
+                <div class="empty-state" id="emptyState">
+                    <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                    </svg>
+                    <h3 class="empty-title">Keine Benachrichtigungen</h3>
+                    <p class="empty-description">Du hast momentan keine neuen Benachrichtigungen. Wenn andere mit deinen Beiträgen interagieren, siehst du es hier.</p>
+                </div>
+
+                <!-- No search results -->
+                <div class="no-results hidden" id="noResults">
+                    <h3 class="empty-title">Keine Ergebnisse gefunden</h3>
+                    <p class="empty-description">Versuche einen anderen Suchbegriff oder wähle eine andere Kategorie.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Dummy data - in einer echten App würde das von einer API kommen
+        let notifications = {
+            likes: [],
+            comments: [],
+            followers: [],
+            mentions: []
+        };
+
+        let currentCategory = 'all';
+        let filteredNotifications = [];
+
+        // Navigation Funktionen
+        function navigateToHome() {
+            window.location.href = 'home.html';
+        }
+
+        // Category Navigation
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentCategory = this.dataset.category;
+                updateSectionTitle();
+                document.getElementById('searchInput').value = '';
+                renderNotifications();
+            });
+        });
+
+        // Update section title based on category
+        function updateSectionTitle() {
+            const sectionTitle = document.getElementById('sectionTitle');
+            const categoryData = {
+                all: { title: 'Alle Benachrichtigungen', icon: 'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z' },
+                likes: { title: 'Likes', icon: 'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z' },
+                comments: { title: 'Kommentare', icon: 'M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z' },
+                followers: { title: 'Neue Follower', icon: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2' },
+                mentions: { title: 'Erwähnungen', icon: 'M12 2v2' }
+            };
+
+            const data = categoryData[currentCategory];
+            sectionTitle.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="${data.icon}"/>
+                </svg>
+                ${data.title}
+            `;
+        }
+
+        // Search Funktionalität
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            renderNotifications();
+        });
+
+        // Get notifications for current category
+        function getCurrentNotifications() {
+            if (currentCategory === 'all') {
+                return [
+                    ...notifications.likes,
+                    ...notifications.comments,
+                    ...notifications.followers,
+                    ...notifications.mentions
+                ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            }
+            return notifications[currentCategory] || [];
+        }
+
+        // Filter notifications based on search
+        function getFilteredNotifications() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            const currentNotifications = getCurrentNotifications();
+
+            if (searchTerm === '') {
+                return currentNotifications;
+            }
+
+            return currentNotifications.filter(item => 
+                item.username.toLowerCase().includes(searchTerm) ||
+                item.text.toLowerCase().includes(searchTerm)
+            );
+        }
+
+        // Render notifications list
+        function renderNotifications() {
+            filteredNotifications = getFilteredNotifications();
+            const notificationsList = document.getElementById('notificationsList');
+            const emptyState = document.getElementById('emptyState');
+            const noResults = document.getElementById('noResults');
+            const searchTerm = document.getElementById('searchInput').value.trim();
+
+            const existingItems = notificationsList.querySelectorAll('.notification-item');
+            existingItems.forEach(item => item.remove());
+
+            const totalNotifications = getCurrentNotifications().length;
+
+            if (totalNotifications === 0) {
+                emptyState.classList.remove('hidden');
+                noResults.classList.add('hidden');
+            } else if (filteredNotifications.length === 0 && searchTerm !== '') {
+                emptyState.classList.add('hidden');
+                noResults.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                noResults.classList.add('hidden');
+
+                filteredNotifications.forEach(notification => {
+                    const notificationItem = document.createElement('div');
+                    notificationItem.className = `notification-item ${notification.read ? '' : 'unread'}`;
+                    
+                    const timeAgo = getTimeAgo(notification.timestamp);
+                    
+                    let content = '';
+                    if (notification.type === 'like') {
+                        content = `
+                            <div class="notification-icon like">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                </svg>
+                            </div>
+                            <div class="notification-content">
+                                <div class="notification-text">
+                                    <span class="username">${notification.username}</span> hat dein Foto geliked
+                                </div>
+                                <div class="notification-time">${timeAgo}</div>
+                            </div>
+                            ${notification.postImage ? `<img src="${notification.postImage}" alt="Post" class="post-preview">` : ''}
+                        `;
+                    } else if (notification.type === 'comment') {
+                        content = `
+                            <img src="${notification.avatar}" alt="${notification.username}" class="notification-avatar">
+                            <div class="notification-content">
+                                <div class="notification-text">
+                                    <span class="username">${notification.username}</span> hat dein Foto kommentiert: "${notification.comment}"
+                                </div>
+                                <div class="notification-time">${timeAgo}</div>
+                            </div>
+                            ${notification.postImage ? `<img src="${notification.postImage}" alt="Post" class="post-preview">` : ''}
+                        `;
+                    } else if (notification.type === 'follow') {
+                        content = `
+                            <img src="${notification.avatar}" alt="${notification.username}" class="notification-avatar">
+                            <div class="notification-content">
+                                <div class="notification-text">
+                                    <span class="username">${notification.username}</span> folgt dir jetzt
+                                </div>
+                                <div class="notification-time">${timeAgo}</div>
+                                <div class="notification-actions">
+                                    <button class="action-btn" onclick="followBack('${notification.id}')">Zurück folgen</button>
+                                    <button class="action-btn secondary" onclick="viewProfile('${notification.username}')">Profil ansehen</button>
+                                </div>
+                            </div>
+                        `;
+                    } else if (notification.type === 'mention') {
+                        content = `
+                            <img src="${notification.avatar}" alt="${notification.username}" class="notification-avatar">
+                            <div class="notification-content">
+                                <div class="notification-text">
+                                    <span class="username">${notification.username}</span> hat dich in einem Kommentar erwähnt
+                                </div>
+                                <div class="notification-time">${timeAgo}</div>
+                            </div>
+                            ${notification.postImage ? `<img src="${notification.postImage}" alt="Post" class="post-preview">` : ''}
+                        `;
+                    }
+
+                    notificationItem.innerHTML = content;
+                    notificationItem.onclick = () => markAsRead(notification.id);
+                    
+                    notificationsList.insertBefore(notificationItem, emptyState);
+                });
+            }
+
+            updateNotificationCounts();
+        }
+
+        // Get time ago string
+        function getTimeAgo(timestamp) {
+            const now = new Date();
+            const time = new Date(timestamp);
+            const diffInMinutes = Math.floor((now - time) / (1000 * 60));
+            
+            if (diffInMinutes < 1) return 'Gerade eben';
+            if (diffInMinutes < 60) return `${diffInMinutes}m`;
+            if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h`;
+            return `${Math.floor(diffInMinutes / 1440)}d`;
+        }
+
+        // Update notification counts
+        function updateNotificationCounts() {
+            const counts = {
+                all: 0,
+                likes: 0,
+                comments: 0,
+                followers: 0,
+                mentions: 0
+            };
+
+            Object.keys(notifications).forEach(category => {
+                const unreadCount = notifications[category].filter(n => !n.read).length;
+                counts[category] = unreadCount;
+                counts.all += unreadCount;
+            });
+
+            Object.keys(counts).forEach(category => {
+                const badge = document.getElementById(category + 'Badge');
+                if (badge) {
+                    if (counts[category] > 0) {
+                        badge.textContent = counts[category] > 99 ? '99+' : counts[category];
+                        badge.style.display = 'flex';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+            });
+
+            const count = filteredNotifications.length;
+            const total = getCurrentNotifications().length;
+            const countElement = document.getElementById('notificationsCount');
+            
+            if (count === total) {
+                countElement.textContent = count === 1 ? '1 Benachrichtigung' : `${count} Benachrichtigungen`;
+            } else {
+                countElement.textContent = `${count} von ${total} angezeigt`;
+            }
+        }
+
+        // Mark notification as read
+        function markAsRead(notificationId) {
+            Object.keys(notifications).forEach(category => {
+                notifications[category] = notifications[category].map(n => 
+                    n.id === notificationId ? { ...n, read: true } : n
+                );
+            });
+            renderNotifications();
+        }
+
+        // Mark all as read
+        function markAllAsRead() {
+            Object.keys(notifications).forEach(category => {
+                notifications[category] = notifications[category].map(n => ({ ...n, read: true }));
+            });
+            renderNotifications();
+        }
+
+        // Action functions
+        function followBack(notificationId) {
+            console.log('Follow back:', notificationId);
+        }
+
+        function viewProfile(username) {
+            console.log('View profile:', username);
+        }
+
+        // Initial render
+        renderNotifications();
+    </script>
+</body>
+</html>

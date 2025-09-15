@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mitteilungen - GIBBSTA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #fafafa;
+            color: #262626;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: #fff;
+            border-bottom: 1px solid #dbdbdb;
+            padding: 16px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .nav {
+            max-width: 935px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .back-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .back-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .back-btn svg {
+            width: 24px;
+            height: 24px;
+            color: #262626;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #262626;
+        }
+
+        .mark-all-btn {
+            background: transparent;
+            color: #0095f6;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .mark-all-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .main-content {
+            flex: 1;
+            max-width: 935px;
+            margin: 0 auto;
+            padding: 20px;
+            width: 100%;
+        }
+
+        .search-section {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #dbdbdb;
+        }
+
+        .search-container {
+            position: relative;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 14px 20px 14px 50px;
+            border: 1px solid #dbdbdb;
+            border-radius: 25px;
+            background: #fafafa;
+            font-size: 14px;
+            color: #262626;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #0095f6;
+            background: #fff;
+            box-shadow: 0 0 10px rgba(0, 149, 246, 0.1);
+        }
+
+        .search-input::placeholder {
+            color: #8e8e8e;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            color: #8e8e8e;
+        }
+
+        .categories-nav {
+            background: #fff;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #dbdbdb;
+            overflow-x: auto;
+        }
+
+        .categories-list {
+            display: flex;
+            padding: 16px 20px;
+            gap: 8px;
+            min-width: max-content;
+        }
+
+        .category-btn {
+            background: transparent;
+            border: 1px solid #dbdbdb;
+            color: #8e8e8e;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+        }
+
+        .category-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .category-btn.active {
+            background: #0095f6;
+            color: white;
+            border-color: #0095f6;
+        }
+
+        .category-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #ed4956;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 18px;
+        }
+
+        .messages-section {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #dbdbdb;
+            overflow: hidden;
+            min-height: 400px;
+        }
+
+        .section-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #dbdbdb;
+            background: #fafafa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #262626;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .messages-count {
+            font-size: 14px;
+            color: #8e8e8e;
+        }
+
+        .messages-list {
+            padding: 0;
+        }
+
+        .message-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 16px 24px;
+            border-bottom: 1px solid #efefef;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .message-item:hover {
+            background: #fafafa;
+        }
+
+        .message-item:last-child {
+            border-bottom: none;
+        }
+
+        .message-item.unread {
+            background: #f8f9ff;
+            border-left: 3px solid #0095f6;
+        }
+
+        .message-item.unread:hover {
+            background: #f0f2ff;
+        }
+
+        .message-item.urgent {
+            border-left: 3px solid #ed4956;
+            background: #fff5f5;
+        }
+
+        .message-item.urgent:hover {
+            background: #ffebeb;
+        }
+
+        .message-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .message-icon svg {
+            width: 20px;
+            height: 20px;
+            color: white;
+        }
+
+        .message-icon.system {
+            background: #0095f6;
+        }
+
+        .message-icon.security {
+            background: #ed4956;
+        }
+
+        .message-icon.update {
+            background: #00ba7c;
+        }
+
+        .message-icon.promo {
+            background: #ff8c00;
+        }
+
+        .message-icon.support {
+            background: #8e44ad;
+        }
+
+        .message-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 4px;
+        }
+
+        .message-title {
+            font-weight: 600;
+            font-size: 15px;
+            color: #262626;
+            line-height: 1.3;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: #8e8e8e;
+            flex-shrink: 0;
+            margin-left: 8px;
+        }
+
+        .message-preview {
+            font-size: 14px;
+            color: #8e8e8e;
+            line-height: 1.4;
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .message-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .message-category {
+            font-size: 12px;
+            color: #0095f6;
+            font-weight: 500;
+        }
+
+        .message-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            background: transparent;
+            border: none;
+            color: #8e8e8e;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: #f5f5f5;
+            color: #262626;
+        }
+
+        .action-btn.delete:hover {
+            color: #ed4956;
+        }
+
+        .action-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .priority-indicator {
+            position: absolute;
+            top: 12px;
+            right: 20px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .priority-indicator.high {
+            background: #ed4956;
+        }
+
+        .priority-indicator.medium {
+            background: #ff8c00;
+        }
+
+        .priority-indicator.low {
+            background: #00ba7c;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 24px;
+            color: #8e8e8e;
+        }
+
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #262626;
+        }
+
+        .empty-description {
+            font-size: 14px;
+            line-height: 1.5;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px 24px;
+            color: #8e8e8e;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 16px;
+            }
+
+            .categories-list {
+                padding: 12px 16px;
+            }
+
+            .section-header {
+                padding: 16px 20px;
+            }
+
+            .message-item {
+                padding: 12px 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav {
+                padding: 0 16px;
+            }
+
+            .page-title {
+                font-size: 18px;
+            }
+
+            .search-section {
+                padding: 20px;
+            }
+
+            .message-icon {
+                width: 36px;
+                height: 36px;
+                margin-right: 10px;
+            }
+
+            .message-title {
+                font-size: 14px;
+            }
+
+            .message-preview {
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <button class="back-btn" onclick="navigateToHome()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m15 18-6-6 6-6"/>
+                </svg>
+            </button>
+            <h1 class="page-title">Mitteilungen</h1>
+            <button class="mark-all-btn" onclick="markAllAsRead()">Alle als gelesen markieren</button>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <div class="search-section">
+            <div class="search-container">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/>
+                    <path d="m21 21-4.35-4.35"/>
+                </svg>
+                <input type="text" class="search-input" placeholder="Durchsuche deine Mitteilungen..." id="searchInput">
+            </div>
+        </div>
+
+        <div class="categories-nav">
+            <div class="categories-list">
+                <button class="category-btn active" data-category="all">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                    </svg>
+                    Alle
+                    <span class="notification-badge" id="allBadge">0</span>
+                </button>
+                <button class="category-btn" data-category="system">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    System
+                    <span class="notification-badge" id="systemBadge">0</span>
+                </button>
+                <button class="category-btn" data-category="security">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                    Sicherheit
+                    <span class="notification-badge" id="securityBadge">0</span>
+                </button>
+                <button class="category-btn" data-category="updates">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M21.5 2l-3 2L12 7.5 4.5 4l-3-2v13c0 1.1.9 2 2 2h17c1.1 0 2-.9 2-2V2z"/>
+                        <polyline points="10,11 14,11 12,13"/>
+                    </svg>
+                    Updates
+                    <span class="notification-badge" id="updatesBadge">0</span>
+                </button>
+                <button class="category-btn" data-category="promos">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M9.5 9.5a3.5 3.5 0 1 1 0 7"/>
+                        <path d="M16 12a4 4 0 1 1-8 0"/>
+                    </svg>
+                    Werbung
+                    <span class="notification-badge" id="promosBadge">0</span>
+                </button>
+                <button class="category-btn" data-category="support">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        <path d="M12 7v6"/>
+                        <path d="M12 17h.01"/>
+                    </svg>
+                    Support
+                    <span class="notification-badge" id="supportBadge">0</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="messages-section">
+            <div class="section-header">
+                <h2 class="section-title" id="sectionTitle">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                    </svg>
+                    Alle Mitteilungen
+                </h2>
+                <p class="messages-count" id="messagesCount">0 Mitteilungen</p>
+            </div>
+            
+            <div class="messages-list" id="messagesList">
+                <!-- Empty State -->
+                <div class="empty-state" id="emptyState">
+                    <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                        <polyline points="22,6 12,13 2,6"/>
+                    </svg>
+                    <h3 class="empty-title">Keine Mitteilungen</h3>
+                    <p class="empty-description">Du hast momentan keine neuen Mitteilungen. Wichtige Updates, Sicherheitsmeldungen und andere Nachrichten erscheinen hier.</p>
+                </div>
+
+                <!-- No search results -->
+                <div class="no-results hidden" id="noResults">
+                    <h3 class="empty-title">Keine Ergebnisse gefunden</h3>
+                    <p class="empty-description">Versuche einen anderen Suchbegriff oder wähle eine andere Kategorie.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Dummy data - in einer echten App würde das von einer API kommen
+        let messages = {
+            system: [],
+            security: [],
+            updates: [],
+            promos: [],
+            support: []
+        };
+
+        let currentCategory = 'all';
+        let filteredMessages = [];
+
+        // Navigation Funktionen
+        function navigateToHome() {
+            window.location.href = 'home.html';
+        }
+
+        // Category Navigation
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentCategory = this.dataset.category;
+                updateSectionTitle();
+                document.getElementById('searchInput').value = '';
+                renderMessages();
+            });
+        });
+
+        // Update section title based on category
+        function updateSectionTitle() {
+            const sectionTitle = document.getElementById('sectionTitle');
+            const categoryData = {
+                all: { 
+                    title: 'Alle Mitteilungen', 
+                    icon: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' 
+                },
+                system: { 
+                    title: 'System-Mitteilungen', 
+                    icon: 'M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z' 
+                },
+                security: { 
+                    title: 'Sicherheits-Mitteilungen', 
+                    icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' 
+                },
+                updates: { 
+                    title: 'Update-Mitteilungen', 
+                    icon: 'M21.5 2l-3 2L12 7.5 4.5 4l-3-2v13c0 1.1.9 2 2 2h17c1.1 0 2-.9 2-2V2z' 
+                },
+                promos: { 
+                    title: 'Werbung & Promotions', 
+                    icon: 'M9.5 9.5a3.5 3.5 0 1 1 0 7' 
+                },
+                support: { 
+                    title: 'Support-Mitteilungen', 
+                    icon: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' 
+                }
+            };
+
+            const data = categoryData[currentCategory];
+            sectionTitle.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="${data.icon}"/>
+                </svg>
+                ${data.title}
+            `;
+        }
+
+        // Search Funktionalität
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            renderMessages();
+        });
+
+        // Get messages for current category
+        function getCurrentMessages() {
+            if (currentCategory === 'all') {
+                return [
+                    ...messages.system,
+                    ...messages.security,
+                    ...messages.updates,
+                    ...messages.promos,
+                    ...messages.support
+                ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            }
+            return messages[currentCategory] || [];
+        }
+
+        // Filter messages based on search
+        function getFilteredMessages() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            const currentMessages = getCurrentMessages();
+
+            if (searchTerm === '') {
+                return currentMessages;
+            }
+
+            return currentMessages.filter(item => 
+                item.title.toLowerCase().includes(searchTerm) ||
+                item.content.toLowerCase().includes(searchTerm) ||
+                item.category.toLowerCase().includes(searchTerm)
+            );
+        }
+
+        // Render messages list
+        function renderMessages() {
+            filteredMessages = getFilteredMessages();
+            const messagesList = document.getElementById('messagesList');
+            const emptyState = document.getElementById('emptyState');
+            const noResults = document.getElementById('noResults');
+            const searchTerm = document.getElementById('searchInput').value.trim();
+
+            const existingItems = messagesList.querySelectorAll('.message-item');
+            existingItems.forEach(item => item.remove());
+
+            const totalMessages = getCurrentMessages().length;
+
+            if (totalMessages === 0) {
+                emptyState.classList.remove('hidden');
+                noResults.classList.add('hidden');
+            } else if (filteredMessages.length === 0 && searchTerm !== '') {
+                emptyState.classList.add('hidden');
+                noResults.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                noResults.classList.add('hidden');
+
+                filteredMessages.forEach(message => {
+                    const messageItem = document.createElement('div');
+                    messageItem.className = `message-item ${message.read ? '' : 'unread'} ${message.urgent ? 'urgent' : ''}`;
+                    
+                    const timeAgo = getTimeAgo(message.timestamp);
+                    
+                    let priorityIndicator = '';
+                    if (message.priority) {
+                        priorityIndicator = `<div class="priority-indicator ${message.priority}"></div>`;
+                    }
+
+                    messageItem.innerHTML = `
+                        <div class="message-icon ${message.type}">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="${getIconPath(message.type)}"/>
+                            </svg>
+                        </div>
+                        <div class="message-content">
+                            <div class="message-header">
+                                <div class="message-title">${message.title}</div>
+                                <div class="message-time">${timeAgo}</div>
+                            </div>
+                            <div class="message-preview">${message.content}</div>
+                            <div class="message-meta">
+                                <div class="message-category">${message.category}</div>
+                                <div class="message-actions">
+                                    <button class="action-btn" onclick="markAsRead('${message.id}')" title="Als gelesen markieren">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="20,6 9,17 4,12"/>
+                                        </svg>
+                                    </button>
+                                    <button class="action-btn delete" onclick="deleteMessage('${message.id}')" title="Löschen">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="3,6 5,6 21,6"/>
+                                            <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        ${priorityIndicator}
+                    `;
+                    
+                    messageItem.onclick = (e) => {
+                        if (!e.target.closest('.message-actions')) {
+                            openMessage(message.id);
+                        }
+                    };
+                    
+                    messagesList.insertBefore(messageItem, emptyState);
+                });
+            }
+
+            updateMessageCounts();
+        }
+
+        // Get icon path for message type
+        function getIconPath(type) {
+            const icons = {
+                system: 'M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z',
+                security: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
+                update: 'M21.5 2l-3 2L12 7.5 4.5 4l-3-2v13c0 1.1.9 2 2 2h17c1.1 0 2-.9 2-2V2z',
+                promo: 'M9.5 9.5a3.5 3.5 0 1 1 0 7',
+                support: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'
+            };
+            return icons[type] || icons.system;
+        }
+
+        // Get time ago string
+        function getTimeAgo(timestamp) {
+            const now = new Date();
+            const time = new Date(timestamp);
+            const diffInMinutes = Math.floor((now - time) / (1000 * 60));
+            
+            if (diffInMinutes < 1) return 'Gerade eben';
+            if (diffInMinutes < 60) return `${diffInMinutes}m`;
+            if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h`;
+            return `${Math.floor(diffInMinutes / 1440)}d`;
+        }
+
+        // Update message counts
+        function updateMessageCounts() {
+            const counts = {
+                all: 0,
+                system: 0,
+                security: 0,
+                updates: 0,
+                promos: 0,
+                support: 0
+            };
+
+            Object.keys(messages).forEach(category => {
+                const unreadCount = messages[category].filter(m => !m.read).length;
+                counts[category] = unreadCount;
+                counts.all += unreadCount;
+            });
+
+            Object.keys(counts).forEach(category => {
+                const badge = document.getElementById(category + 'Badge');
+                if (badge) {
+                    if (counts[category] > 0) {
+                        badge.textContent = counts[category] > 99 ? '99+' : counts[category];
+                        badge.style.display = 'flex';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+            });
+
+            const count = filteredMessages.length;
+            const total = getCurrentMessages().length;
+            const countElement = document.getElementById('messagesCount');
+            
+            if (count === total) {
+                countElement.textContent = count === 1 ? '1 Mitteilung' : `${count} Mitteilungen`;
+            } else {
+                countElement.textContent = `${count} von ${total} angezeigt`;
+            }
+        }
+
+        // Mark message as read
+        function markAsRead(messageId) {
+            Object.keys(messages).forEach(category => {
+                messages[category] = messages[category].map(m => 
+                    m.id === messageId ? { ...m, read: true } : m
+                );
+            });
+            renderMessages();
+        }
+
+        // Mark all as read
+        function markAllAsRead() {
+            Object.keys(messages).forEach(category => {
+                messages[category] = messages[category].map(m => ({ ...m, read: true }));
+            });
+            renderMessages();
+        }
+
+        // Delete message
+        function deleteMessage(messageId) {
+            Object.keys(messages).forEach(category => {
+                messages[category] = messages[category].filter(m => m.id !== messageId);
+            });
+            renderMessages();
+        }
+
+        // Open message details
+        function openMessage(messageId) {
+            console.log('Open message:', messageId);
+            markAsRead(messageId);
+        }
+
+        // Initial render
+        renderMessages();
+    </script>
+</body>
+</html>
