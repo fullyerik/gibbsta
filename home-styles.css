@@ -1,0 +1,252 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #fafafa;
+    font-family: Arial, sans-serif;
+}
+
+/* Top Navigation */
+.top-nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 60px;
+    background-color: white;
+    border-bottom: 1px solid #dbdbdb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    box-sizing: border-box;
+    z-index: 100;
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+}
+
+.nav-logo {
+    height: 40px;
+    margin-right: 20px;
+}
+
+.nav-center {
+    display: flex;
+    gap: 20px;
+    margin-right: auto; /* Verschiebt die Icons nach links */
+}
+
+.notifications {
+    position: relative;
+    cursor: pointer;
+    padding: 8px;
+    font-size: 20px; /* Icon-Größe anpassen */
+    color: #262626; /* Icon-Farbe anpassen */
+}
+
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #ff3040;
+    color: white;
+    border-radius: 50%;
+    padding: 1px 4px;
+    font-size: 10px;
+    min-width: 12px;
+    height: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.nav-right {
+    display: flex;
+    gap: 10px;
+}
+
+.feed-toggle {
+    background: none;
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    border-radius: 20px;
+}
+
+.feed-toggle.active {
+    background-color: #0095f6;
+    color: white;
+}
+
+/* Content Area */
+.content {
+    margin-top: 70px;
+    margin-bottom: 60px;
+    padding: 10px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Post Styling */
+.post {
+    background-color: white;
+    border: 1px solid #dbdbdb;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.post-header {
+    display: flex;
+    align-items: center;
+    padding: 14px;
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.username {
+    font-weight: 600;
+    flex-grow: 1;
+}
+
+.more-options {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.post-image img {
+    width: 100%;
+    display: block;
+}
+
+.post-actions {
+    padding: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.post-actions button {
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    font-size: 24px;
+}
+
+.save-post {
+    margin-left: auto;
+}
+
+.post-likes {
+    padding: 0 14px;
+    font-weight: 600;
+}
+
+.post-caption {
+    padding: 0 14px;
+    margin-bottom: 8px;
+}
+
+.post-comments {
+    padding: 0 14px;
+}
+
+.view-comments {
+    background: none;
+    border: none;
+    color: #8e8e8e;
+    cursor: pointer;
+    padding: 0;
+}
+
+.post-time {
+    padding: 14px;
+    color: #8e8e8e;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+/* Bottom Navigation */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 50px;
+    background-color: white;
+    border-top: 1px solid #dbdbdb;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 100;
+}
+
+.nav-button {
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    font-size: 24px;
+    transition: transform 0.2s ease;
+}
+
+.nav-button:active {
+    transform: scale(0.95);
+}
+
+.nav-button i {
+    transition: color 0.2s ease;
+}
+
+.nav-button.active {
+    color: #0095f6;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .nav-right {
+        display: none;
+    }
+    
+    .content {
+        margin-top: 60px;
+    }
+    
+    .post {
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .nav-logo {
+        height: 30px;
+    }
+    
+    .nav-center {
+        gap: 10px;
+    }
+    
+    .notifications {
+        padding: 4px;
+    }
+    
+    .notification-badge {
+        min-width: 10px;
+        height: 10px;
+        font-size: 9px;
+    }
+    
+    .notifications {
+        font-size: 18px;
+    }
+}

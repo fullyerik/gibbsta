@@ -1,30 +1,79 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gibbsta - Home</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="script.js" defer></script>
+    <link rel="stylesheet" href="home-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <h1>Welcome to Gibbsta</h1>
-    <p>Gibbsta ist eine Website, die dir die möglichkeit gibt bilder zu posten und zu Kommentieren</p>
+    <nav class="top-nav">
+        <div class="nav-left">
+            <img src="https://i.ibb.co/Q7mG5wr3/Gibbsta-Logo-Haupt.png" alt="Gibbsta Logo" class="nav-logo">
+        </div>
+        <div class="nav-center">
+            <div class="notifications">
+                <i class="fas fa-inbox"></i>
+                <span class="notification-badge">3</span>
+            </div>
+            <div class="notifications">
+                <i class="fas fa-heart"></i>
+                <span class="notification-badge">5</span>
+            </div>
+        </div>
+        <div class="nav-right">
+            <button class="feed-toggle active">Für dich</button>
+            <button class="feed-toggle">Gefolgt</button>
+            <button class="feed-toggle">Favoriten</button>
+        </div>
+    </nav>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
-        
-        // Zeige/Verstecke Elemente basierend auf Berechtigungen
-        if (hasPermission(currentUser, 'ban_users')) {
-            document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
-        }
-        
-        if (hasPermission(currentUser, 'delete_comments')) {
-            document.querySelectorAll('.moderator-only').forEach(el => el.style.display = 'block');
-        }
-    });
-    </script>
+    <main class="content">
+        <!-- Hier kommen später die Posts hin -->
+        <div class="post">
+            <div class="post-header">
+                <img src="default-avatar.png" alt="User Avatar" class="user-avatar">
+                <span class="username">Beispiel_User</span>
+                <button class="more-options"><i class="fas fa-ellipsis"></i></button>
+            </div>
+            <div class="post-image">
+                <img src="example-post.jpg" alt="Post Image">
+            </div>
+            <div class="post-actions">
+                <button><i class="far fa-heart"></i></button>
+                <button><i class="far fa-comment"></i></button>
+                <button><i class="far fa-paper-plane"></i></button>
+                <button class="save-post"><i class="far fa-bookmark"></i></button>
+            </div>
+            <div class="post-likes">123 Likes</div>
+            <div class="post-caption">
+                <span class="username">Beispiel_User</span>
+                <span class="caption-text">Das ist ein Beispiel-Post! #gibbsta #awesome</span>
+            </div>
+            <div class="post-comments">
+                <button class="view-comments">Alle 45 Kommentare anzeigen</button>
+            </div>
+            <div class="post-time">VOR 2 STUNDEN</div>
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <button class="nav-button active">
+            <i class="fas fa-home"></i>
+        </button>
+        <button class="nav-button">
+            <i class="fas fa-search"></i>
+        </button>
+        <button class="nav-button">
+            <i class="fas fa-plus-square"></i>
+        </button>
+        <button class="nav-button" id="profileButton">
+            <i class="fas fa-user"></i>
+        </button>
+    </nav>
+
+    <script src="home-script.js"></script>
 </body>
 </html>
 
