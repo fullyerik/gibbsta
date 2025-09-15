@@ -58,19 +58,40 @@
         </div>
     </main>
 
+    <!-- Neue Bottom Navigation -->
     <nav class="bottom-nav">
-        <button class="nav-button active">
-            <i class="fas fa-home"></i>
-        </button>
-        <button class="nav-button">
-            <i class="fas fa-search"></i>
-        </button>
-        <button class="nav-button">
-            <i class="fas fa-plus-square"></i>
-        </button>
-        <button class="nav-button" id="profileButton">
-            <i class="fas fa-user"></i>
-        </button>
+        <div class="nav-container">
+            <!-- Home/FY Icon (Links) -->
+            <button class="nav-item active">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                </svg>
+            </button>
+
+            <!-- Such Icon (Mitte) -->
+            <button class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/>
+                    <path d="m21 21-4.35-4.35"/>
+                </svg>
+            </button>
+
+            <!-- Plus Button (wie Instagram) -->
+            <button class="nav-item plus-btn" onclick="openPostModal()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </button>
+
+            <!-- Profil Icon (Rechts) -->
+            <button class="nav-item" id="profileButton">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="8" r="4"/>
+                    <path d="M12 14c-4.5 0-8 2.5-8 5v1h16v-1c0-2.5-3.5-5-8-5z"/>
+                </svg>
+            </button>
+        </div>
     </nav>
 
     <script src="home-script.js"></script>
