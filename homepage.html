@@ -67,16 +67,16 @@
         }
 
         .nav-item {
+            background: none;
+            border: none;
+            cursor: pointer;
+            width: 48px;
+            height: 48px;
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 48px;
-            height: 48px;
             border-radius: 50%;
-            cursor: pointer;
             transition: all 0.2s ease;
-            background: transparent;
-            border: none;
         }
 
         .nav-item:hover {
@@ -84,11 +84,7 @@
         }
 
         .nav-item.active {
-            background: #262626;
-        }
-
-        .nav-item.active svg {
-            color: #fff;
+            color: #0095f6;
         }
 
         .nav-item svg {
@@ -99,20 +95,24 @@
 
         /* Plus Button spezielle Styles */
         .nav-item.plus-btn {
-            width: 24px;
-            height: 24px;
-            border-radius: 4px;
+            width: 35px;
+            height: 35px;
             border: 2px solid #262626;
-            background: transparent;
+            border-radius: 4px;
         }
 
         .nav-item.plus-btn:hover {
             background: #f5f5f5;
         }
 
+        .nav-item.plus-btn.active {
+            border-color: #0095f6;
+            color: #0095f6;
+        }
+
         .nav-item.plus-btn svg {
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
             stroke-width: 2;
         }
 
@@ -371,12 +371,13 @@
             color: #262626;
         }
 
+        /* Bottom Navigation Styles */
         .bottom-nav {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: #fff;
+            background: white;
             border-top: 1px solid #dbdbdb;
             padding: 16px 0;
             z-index: 100;
@@ -733,17 +734,17 @@
     </div>
 </main>
 
-<!-- Bottom Navigation -->
+<!-- Bottom Navigation für alle HTML-Dateien -->
 <nav class="bottom-nav">
     <div class="nav-container">
-        <!-- Home/FY Icon (Links) -->
-        <button class="nav-item" onclick="navigateToHome()">
+        <!-- Home Icon -->
+        <button class="nav-item" onclick="location.href='home.html'">
             <svg viewBox="0 0 24 24" fill="currentColor">
                 <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
             </svg>
         </button>
 
-        <!-- Such Icon (Mitte) -->
+        <!-- Search Icon -->
         <button class="nav-item" onclick="location.href='search.html'">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="11" cy="11" r="8"/>
@@ -751,7 +752,7 @@
             </svg>
         </button>
 
-        <!-- Plus Button (wie Instagram) -->
+        <!-- Plus Icon -->
         <button class="nav-item plus-btn" onclick="location.href='post.html'">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -759,8 +760,8 @@
             </svg>
         </button>
 
-        <!-- Profil Icon (Rechts) -->
-        <button class="nav-item active">
+        <!-- Profile Icon -->
+        <button class="nav-item" onclick="location.href='homepage.html'">
             <svg viewBox="0 0 24 24" fill="currentColor">
                 <circle cx="12" cy="8" r="4"/>
                 <path d="M12 14c-4.5 0-8 2.5-8 5v1h16v-1c0-2.5-3.5-5-8-5z"/>

@@ -154,10 +154,12 @@ textarea {
 .bottom-nav {
     position: fixed;
     bottom: 0;
-    width: 100%;
+    left: 0;
+    right: 0;
     background: white;
     border-top: 1px solid #dbdbdb;
     padding: 16px 0;
+    z-index: 100;
 }
 
 .nav-container {
@@ -171,19 +173,28 @@ textarea {
 .nav-item {
     background: none;
     border: none;
-    font-size: 24px;
     cursor: pointer;
-    color: #262626;
     width: 48px;
     height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.nav-item:hover {
+    background: #f5f5f5;
 }
 
 .nav-item.active {
     color: #0095f6;
+}
+
+.nav-item svg {
+    width: 24px;
+    height: 24px;
+    color: #262626;
 }
 
 .nav-item.plus-btn {
@@ -191,10 +202,14 @@ textarea {
     height: 35px;
     border: 2px solid #262626;
     border-radius: 4px;
-    font-size: 20px;
 }
 
 .nav-item.plus-btn.active {
     border-color: #0095f6;
     color: #0095f6;
+}
+
+.nav-item.plus-btn svg {
+    width: 20px;
+    height: 20px;
 }
