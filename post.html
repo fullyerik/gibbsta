@@ -1,84 +1,76 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gibbsta - Neuer Beitrag</title>
-    <link rel="stylesheet" href="post-styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gibbsta - Neuer Beitrag</title>
+  <link rel="stylesheet" href="post-styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <!-- Top Navigation -->
-    <nav class="top-nav">
-        <div class="nav-left"></div>
-        <div class="nav-center">
-            <img src="https://i.ibb.co/Q7mG5wr3/Gibbsta-Logo-Haupt.png" alt="Gibbsta Logo" class="nav-logo">
+  <!-- Supabase einbinden -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = "https://DEIN-PROJEKT.supabase.co";
+    const SUPABASE_ANON_KEY = "DEIN_ANON_PUBLIC_KEY";
+    window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    async function sbUser() { return (await sb.auth.getUser()).data.user; }
+    function publicUrl(path) { return sb.storage.from('images').getPublicUrl(path).data.publicUrl; }
+  </script>
+
+  <!-- Top Navigation -->
+  <nav class="top-nav">
+    <div class="nav-left"></div>
+    <div class="nav-center">
+      <img src="https://i.ibb.co/Q7mG5wr3/Gibbsta-Logo-Haupt.png" alt="Gibbsta Logo" class="nav-logo">
+    </div>
+    <div class="nav-right"></div>
+  </nav>
+
+  <main class="content">
+    <div class="post-container">
+      <h2>Neuer Beitrag</h2>
+      
+      <div class="upload-section">
+        <div id="imagePreview" class="image-preview">
+          <i class="fas fa-image"></i>
+          <p>Klicke hier oder ziehe ein Bild hierher</p>
         </div>
-        <div class="nav-right"></div>
-    </nav>
+        <input type="file" id="imageInput" accept="image/*" hidden>
+      </div>
 
-    <main class="content">
-        <div class="post-container">
-            <h2>Neuer Beitrag</h2>
-            
-            <div class="upload-section">
-                <div id="imagePreview" class="image-preview">
-                    <i class="fas fa-image"></i>
-                    <p>Klicke hier oder ziehe ein Bild hierher</p>
-                </div>
-                <input type="file" id="imageInput" accept="image/*" hidden>
-            </div>
-
-            <div class="caption-section">
-                <textarea id="captionInput" placeholder="Schreibe eine Beschreibung..."></textarea>
-                <div class="caption-tools">
-                    <span id="charCount">0/2200</span>
-                </div>
-            </div>
-
-            <div class="post-options">
-                <button class="post-button" onclick="createPost()">Posten</button>
-                <button class="cancel-button" onclick="window.location.href='home.html'">Abbrechen</button>
-            </div>
+      <div class="caption-section">
+        <textarea id="captionInput" placeholder="Schreibe eine Beschreibung..."></textarea>
+        <div class="caption-tools">
+          <span id="charCount">0/2200</span>
         </div>
-    </main>
+      </div>
 
-    <!-- Bottom Navigation für alle HTML-Dateien -->
-    <nav class="bottom-nav">
-        <div class="nav-container">
-            <!-- Home Icon -->
-            <button class="nav-item" onclick="location.href='home.html'">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-                </svg>
-            </button>
+      <div class="post-options">
+        <button class="post-button" onclick="createPost()">Posten</button>
+        <button class="cancel-button" onclick="window.location.href='home.html'">Abbrechen</button>
+      </div>
+    </div>
+  </main>
 
-            <!-- Search Icon -->
-            <button class="nav-item" onclick="location.href='search.html'">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="8"/>
-                    <path d="m21 21-4.35-4.35"/>
-                </svg>
-            </button>
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <div class="nav-container">
+      <button class="nav-item" onclick="location.href='home.html'">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      </button>
+      <button class="nav-item" onclick="location.href='search.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </button>
+      <button class="nav-item plus-btn" onclick="location.href='post.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      </button>
+      <button class="nav-item" onclick="location.href='homepage.html'">
+        <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M12 14c-4.5 0-8 2.5-8 5v1h16v-1c0-2.5-3.5-5-8-5z"/></svg>
+      </button>
+    </div>
+  </nav>
 
-            <!-- Plus Icon -->
-            <button class="nav-item plus-btn" onclick="location.href='post.html'">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-            </button>
-
-            <!-- Profile Icon -->
-            <button class="nav-item" onclick="location.href='homepage.html'">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                    <circle cx="12" cy="8" r="4"/>
-                    <path d="M12 14c-4.5 0-8 2.5-8 5v1h16v-1c0-2.5-3.5-5-8-5z"/>
-                </svg>
-            </button>
-        </div>
-    </nav>
-
-    <script src="post-script.js"></script>
+  <script src="post-script.js"></script>
 </body>
 </html>

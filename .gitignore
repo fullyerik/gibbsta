@@ -45,5 +45,3 @@ scr/test/
 *.bak
 *.orig
 
-### Other Stuff ###
-.itninja.hugo.json

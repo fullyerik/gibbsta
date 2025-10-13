@@ -6,6 +6,19 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <!-- Supabase einbinden (OBEN, vor deinem script.js) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // === HIER DEINE ECHTEN WERTE EINTRAGEN ===
+    const SUPABASE_URL = "https://DEIN-PROJEKT.supabase.co";
+    const SUPABASE_ANON_KEY = "DEIN_ANON_PUBLIC_KEY";
+    window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Helpers
+    async function sbUser() { return (await sb.auth.getUser()).data.user; }
+    function publicUrl(path) { return sb.storage.from('images').getPublicUrl(path).data.publicUrl; }
+  </script>
+
   <div class="container">
     <div class="logo">
       <img src="https://i.ibb.co/Q7mG5wr3/Gibbsta-Logo-Haupt.png" alt="Gibbsta Logo">
@@ -14,7 +27,7 @@
     <div class="login-box">
       <div id="loginForm" class="form-section">
         <h2>Login</h2>
-        <input type="text" id="logUser" placeholder="Benutzername oder E-Mail">
+        <input type="text" id="logUser" placeholder="E-Mail">
         <input type="password" id="logPass" placeholder="Passwort">
         <button onclick="login()">Login</button>
         <p class="switch-text">Noch kein Account? <a href="#" onclick="toggleForms()">Registrieren</a></p>
@@ -77,6 +90,7 @@
       <p id="message"></p>
     </div>
   </div>
+
   <script src="script.js"></script>
 </body>
 </html>

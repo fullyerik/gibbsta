@@ -1,140 +1,98 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Feed Toggle Buttons
-    const feedToggles = document.querySelectorAll('.feed-toggle');
-    feedToggles.forEach(button => {
-        button.addEventListener('click', function() {
-            feedToggles.forEach(btn => btn.classList.remove('active'));
-            this.classList.add('active');
-        });
+  // Feed Toggle Buttons
+  const feedToggles = document.querySelectorAll('.feed-toggle');
+  feedToggles.forEach(button => {
+    button.addEventListener('click', function() {
+      feedToggles.forEach(btn => btn.classList.remove('active'));
+      this.classList.add('active');
     });
+  });
 
-    // Profile Button Navigation
-    document.getElementById('profileButton').addEventListener('click', function() {
-        window.location.href = 'homepage.html';
-    });
+  // Profile Button
+  const profileBtn = document.getElementById('profileButton');
+  if (profileBtn) profileBtn.addEventListener('click', () => window.location.href = 'homepage.html');
 
-    // Update Bottom Navigation to handle active states
-    const navButtons = document.querySelectorAll('.nav-button');
-    navButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            navButtons.forEach(btn => btn.classList.remove('active'));
-            this.classList.add('active');
-            
-            // Check which button was clicked and navigate accordingly
-            if (this.querySelector('.fa-home')) {
-                window.location.href = 'home.html';
-            } else if (this.querySelector('.fa-user')) {
-                window.location.href = 'homepage.html';
-            }
-            // Add other navigation cases as needed
-        });
+  // Bottom Nav
+  const navButtons = document.querySelectorAll('.nav-button');
+  navButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      navButtons.forEach(btn => btn.classList.remove('active'));
+      this.classList.add('active');
+      if (this.querySelector('.fa-home')) window.location.href = 'home.html';
+      else if (this.querySelector('.fa-user')) window.location.href = 'homepage.html';
     });
+  });
 
-    // Like Button Functionality
-    document.querySelectorAll('.post-actions button:first-child').forEach(button => {
-        button.addEventListener('click', function() {
-            const icon = this.querySelector('i');
-            if (icon.classList.contains('far')) {
-                icon.classList.remove('far');
-                icon.classList.add('fas');
-                icon.style.color = '#ed4956';
-            } else {
-                icon.classList.remove('fas');
-                icon.classList.add('far');
-                icon.style.color = '';
-            }
-        });
+  // Like/Save Toggle (visuell)
+  document.querySelectorAll('.post-actions button:first-child').forEach(button => {
+    button.addEventListener('click', function() {
+      const icon = this.querySelector('i');
+      if (icon.classList.contains('far')) { icon.classList.replace('far','fas'); icon.style.color = '#ed4956'; }
+      else { icon.classList.replace('fas','far'); icon.style.color = ''; }
     });
+  });
+  document.querySelectorAll('.save-post').forEach(button => {
+    button.addEventListener('click', function() {
+      const icon = this.querySelector('i');
+      if (icon.classList.contains('far')) icon.classList.replace('far','fas');
+      else icon.classList.replace('fas','far');
+    });
+  });
 
-    // Save Post Functionality
-    document.querySelectorAll('.save-post').forEach(button => {
-        button.addEventListener('click', function() {
-            const icon = this.querySelector('i');
-            if (icon.classList.contains('far')) {
-                icon.classList.remove('far');
-                icon.classList.add('fas');
-            } else {
-                icon.classList.remove('fas');
-                icon.classList.add('far');
-            }
-        });
-    });
+  // === NEU: Posts aus Supabase laden ===
+  loadPosts();
 });
 
-// Temporäre Beispieldaten (später durch Datenbankabfragen ersetzen)
-const mockUsers = [
-    { username: 'erik_admin', name: 'Erik Admin', isVerified: true },
-    { username: 'lars_admin', name: 'Lars Admin', isVerified: true },
-    { username: 'enes_admin', name: 'Enes Admin', isVerified: true },
-    { username: 'test_user1', name: 'Test User', isVerified: false }
-];
-
-const mockPosts = [
-    { id: 1, username: 'erik_admin', caption: 'Erster Post auf Gibbsta! #start' },
-    { id: 2, username: 'lars_admin', caption: 'Toller Tag bei Gibbsta #awesome' }
-];
-
+// Suche (Modal) – falls du es nutzt, kann bleiben
 let activeSearchTab = 'accounts';
-
 function openSearchModal() {
-    document.getElementById('searchModal').classList.remove('hidden');
-    document.getElementById('searchInput').focus();
+  document.getElementById('searchModal').classList.remove('hidden');
+  document.getElementById('searchInput').focus();
 }
-
-function closeSearchModal() {
-    document.getElementById('searchModal').classList.add('hidden');
-}
-
+function closeSearchModal() { document.getElementById('searchModal').classList.add('hidden'); }
 function switchSearchTab(tab) {
-    activeSearchTab = tab;
-    document.querySelectorAll('.search-tab').forEach(t => {
-        t.classList.toggle('active', t.innerText.toLowerCase() === tab);
-    });
-    handleSearch();
+  activeSearchTab = tab;
+  document.querySelectorAll('.search-tab').forEach(t => {
+    t.classList.toggle('active', t.innerText.toLowerCase() === tab);
+  });
 }
 
-function handleSearch() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const resultsContainer = document.getElementById('searchResults');
-    resultsContainer.innerHTML = '';
+// === NEU ===
+async function loadPosts({ onlyMine = false } = {}) {
+  const user = await sbUser();
+  let q = sb.from('posts').select('id,user_id,image_path,caption,created_at')
+             .order('created_at', { ascending: false });
+  if (onlyMine && user) q = q.eq('user_id', user.id);
 
-    if (searchTerm.length < 1) return;
+  const { data: posts, error } = await q;
+  if (error) { console.error(error); return; }
 
-    if (activeSearchTab === 'accounts') {
-        const filteredUsers = mockUsers.filter(user => 
-            user.username.toLowerCase().includes(searchTerm) ||
-            user.name.toLowerCase().includes(searchTerm)
-        );
+  const resultsContainer = document.querySelector('.posts-grid') || document.querySelector('.content');
+  const postCountEl = document.getElementById('postCount');
+  if (postCountEl) postCountEl.textContent = posts.length;
 
-        filteredUsers.forEach(user => {
-            resultsContainer.innerHTML += `
-                <div class="search-result-item">
-                    <img src="default-avatar.png" class="search-result-avatar">
-                    <div class="search-result-info">
-                        <div class="search-result-username">${user.username} ${user.isVerified ? '✓' : ''}</div>
-                        <div class="search-result-name">${user.name}</div>
-                    </div>
-                </div>
-            `;
-        });
-    } else {
-        const filteredPosts = mockPosts.filter(post =>
-            post.caption.toLowerCase().includes(searchTerm) ||
-            post.username.toLowerCase().includes(searchTerm)
-        );
+  const html = posts.map(p => `
+    <div class="post">
+      <div class="post-header">
+        <img src="default-avatar.png" class="user-avatar">
+        <div class="username">@${p.user_id.slice(0,8)}</div>
+        <button class="more-options">⋯</button>
+      </div>
+      <div class="post-image"><img src="${publicUrl(p.image_path)}" alt="Post"></div>
+      <div class="post-actions">
+        <button title="Like"><i class="far fa-heart"></i></button>
+        <button title="Kommentieren"><i class="far fa-comment"></i></button>
+        <button class="save-post" title="Speichern"><i class="far fa-bookmark"></i></button>
+      </div>
+      <div class="post-caption"><b>@${p.user_id.slice(0,8)}</b> ${p.caption ?? ''}</div>
+      <div class="post-time">${new Date(p.created_at).toLocaleString('de-CH')}</div>
+    </div>
+  `).join('');
 
-        filteredPosts.forEach(post => {
-            resultsContainer.innerHTML += `
-                <div class="search-result-item">
-                    <div class="search-result-info">
-                        <div class="search-result-username">@${post.username}</div>
-                        <div class="search-result-name">${post.caption}</div>
-                    </div>
-                </div>
-            `;
-        });
-    }
+  resultsContainer.innerHTML = html || `
+    <div class="no-posts">
+      <i class="far fa-image"></i>
+      <h2>Keine Beiträge</h2>
+      <p>Erstelle deinen ersten Beitrag über das Plus unten.</p>
+    </div>`;
 }
-
-// Event Listener für den Such-Button in der Bottom Navigation
-document.querySelector('.nav-item .fa-search').parentElement.addEventListener('click', openSearchModal);
