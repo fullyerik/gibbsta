@@ -1,72 +1,62 @@
-// Temporäre Mockdaten (später durch Datenbank ersetzen)
-const mockUsers = [
-    { username: 'erik_admin', name: 'Erik Admin', isVerified: true },
-    { username: 'lars_admin', name: 'Lars Admin', isVerified: true },
-    { username: 'enes_admin', name: 'Enes Admin', isVerified: true },
-    { username: 'test_user1', name: 'Test User', isVerified: false }
-];
-
-const mockPosts = [
-    { id: 1, username: 'erik_admin', caption: 'Erster Post auf Gibbsta! #start' },
-    { id: 2, username: 'lars_admin', caption: 'Toller Tag bei Gibbsta #awesome' }
-];
-
 let activeSearchTab = 'accounts';
 
-function goBack() {
-    window.history.back();
-}
+function goBack() { history.back(); }
 
 function switchSearchTab(tab) {
-    activeSearchTab = tab;
-    document.querySelectorAll('.search-tab').forEach(t => {
-        t.classList.remove('active');
-        if (t.getAttribute('onclick').includes(tab)) {
-            t.classList.add('active');
-        }
-    });
-    handleSearch();
+  activeSearchTab = tab;
+  document.querySelectorAll('.search-tab').forEach(t => {
+    t.classList.toggle('active', t.textContent.toLowerCase() === tab);
+  });
+  handleSearch();
 }
 
-function handleSearch() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const resultsContainer = document.getElementById('searchResults');
-    resultsContainer.innerHTML = '';
+async function handleSearch() {
+  const term = document.getElementById('searchInput').value.toLowerCase().trim();
+  const results = document.getElementById('searchResults');
+  results.innerHTML = '';
+  if (!term) return;
 
-    if (searchTerm.length < 1) return;
+  // === Suche Accounts ===
+  if (activeSearchTab === 'accounts') {
+    const { data: users, error } = await sb
+      .from('profiles')
+      .select('username, display_name, is_verified, avatar_url')
+      .or(`username.ilike.%${term}%,display_name.ilike.%${term}%`)
+      .limit(20);
+    if (error) { console.error(error); return; }
 
-    if (activeSearchTab === 'accounts') {
-        const filteredUsers = mockUsers.filter(user => 
-            user.username.toLowerCase().includes(searchTerm) ||
-            user.name.toLowerCase().includes(searchTerm)
-        );
+    users.forEach(u => {
+      results.innerHTML += `
+        <div class="search-result-item">
+          <img src="${u.avatar_url || 'default-avatar.png'}" class="search-result-avatar">
+          <div class="search-result-info">
+            <div class="search-result-username">${u.username} ${u.is_verified ? '✓' : ''}</div>
+            <div class="search-result-name">${u.display_name || ''}</div>
+          </div>
+        </div>`;
+    });
+  }
 
-        filteredUsers.forEach(user => {
-            resultsContainer.innerHTML += `
-                <div class="search-result-item">
-                    <img src="default-avatar.png" class="search-result-avatar">
-                    <div class="search-result-info">
-                        <div class="search-result-username">${user.username} ${user.isVerified ? '✓' : ''}</div>
-                        <div class="search-result-name">${user.name}</div>
-                    </div>
-                </div>
-            `;
-        });
-    } else {
-        const filteredPosts = mockPosts.filter(post =>
-            post.caption.toLowerCase().includes(searchTerm) ||
-            post.username.toLowerCase().includes(searchTerm)
-        );
+  // === Suche Beiträge ===
+  else {
+    const { data: posts, error } = await sb
+      .from('posts')
+      .select('id,user_id,caption,image_path,created_at')
+      .ilike('caption', `%${term}%`)
+      .order('created_at', { ascending:false })
+      .limit(30);
+    if (error) { console.error(error); return; }
 
-        filteredPosts.forEach(post => {
-            resultsContainer.innerHTML += `
-                <div class="search-result-item">
-                    <div class="search-result-info">
-                        <div class="search-result-username">@${post.username}</div>
-                        <div class="search-result-name">${post.caption}</div>
-                    </div>
-                </div>
-            `;
-        });
-    }
+    posts.forEach(p => {
+      results.innerHTML += `
+        <div class="search-result-item">
+          <img src="${publicUrl(p.image_path)}" class="post-preview"
+               style="width:44px;height:44px;border-radius:4px;margin-right:12px;object-fit:cover;">
+          <div class="search-result-info">
+            <div class="search-result-username">@${p.user_id.slice(0,8)}</div>
+            <div class="search-result-name">${p.caption || ''}</div>
+          </div>
+        </div>`;
+    });
+  }
 }

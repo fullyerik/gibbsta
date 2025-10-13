@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GIBBSTA</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+       <script>
+            const SUPABASE_URL = "https://sdmlprsgxgrnzoqvgyqz.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbWxwcnNneGdybnpvcXZneXF6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDMyMDk4NiwiZXhwIjoyMDc1ODk2OTg2fQ.rWp3zL2V37X76_PdQAq-pw4uSzpOIyeQ9l3bjEC7tCM";
+        window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        async function sbUser() { return (await sb.auth.getUser()).data.user; }
+        function publicUrl(path) { return sb.storage.from('images').getPublicUrl(path).data.publicUrl; }
+    </script>
     <style>
         * {
             margin: 0;
@@ -814,7 +822,6 @@
         </form>
     </div>
 </div>
-
 <script>
     let editMode = false;
 
@@ -1166,6 +1173,45 @@
             document.getElementById('username').textContent = currentUser.username;
         }
     });
+</script>
+<script>
+async function loadPosts({ onlyMine = false } = {}) {
+  const user = await sbUser();
+  let q = sb.from('posts').select('id,user_id,image_path,caption,created_at')
+             .order('created_at', { ascending: false });
+  if (onlyMine && user) q = q.eq('user_id', user.id);
+
+  const { data: posts, error } = await q;
+  if (error) { console.error(error); return; }
+
+  const grid = document.querySelector('.posts-grid') || document.querySelector('.content');
+  const counter = document.getElementById('postCount');
+  if (counter) counter.textContent = posts.length;
+
+  grid.innerHTML = posts.map(p => `
+    <div class="post">
+      <div class="post-header">
+        <img src="default-avatar.png" class="user-avatar" />
+        <div class="username">@${p.user_id.slice(0,8)}</div>
+        <button class="more-options">⋯</button>
+      </div>
+      <div class="post-image"><img src="${publicUrl(p.image_path)}" alt="Post"></div>
+      <div class="post-actions">
+        <button title="Like"><i class="far fa-heart"></i></button>
+        <button title="Kommentieren"><i class="far fa-comment"></i></button>
+        <button class="save-post" title="Speichern"><i class="far fa-bookmark"></i></button>
+      </div>
+      <div class="post-caption"><b>@${p.user_id.slice(0,8)}</b> ${p.caption ?? ''}</div>
+      <div class="post-time">${new Date(p.created_at).toLocaleString('de-CH')}</div>
+    </div>
+  `).join('') || `
+    <div class="no-posts">
+      <i class="far fa-image"></i>
+      <h2>Keine Beiträge</h2>
+      <p>Erstelle deinen ersten Beitrag über das Plus unten.</p>
+    </div>`;
+}
+document.addEventListener('DOMContentLoaded', () => loadPosts({ onlyMine:false }));
 </script>
 </body>
 </html>

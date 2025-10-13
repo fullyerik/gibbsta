@@ -6,6 +6,14 @@
     <title>Gibbsta - Suche</title>
     <link rel="stylesheet" href="search-styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+         const SUPABASE_URL = "https://sdmlprsgxgrnzoqvgyqz.supabase.co";
+         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbWxwcnNneGdybnpvcXZneXF6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDMyMDk4NiwiZXhwIjoyMDc1ODk2OTg2fQ.rWp3zL2V37X76_PdQAq-pw4uSzpOIyeQ9l3bjEC7tCM";
+        window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        async function sbUser() { return (await sb.auth.getUser()).data.user; }
+        function publicUrl(path) { return sb.storage.from('images').getPublicUrl(path).data.publicUrl; }
+    </script>
 </head>
 <body>
     <!-- Top Navigation -->
@@ -73,7 +81,6 @@
             </button>
         </div>
     </nav>
-
     <script src="search-script.js"></script>
 </body>
 </html>

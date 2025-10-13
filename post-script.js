@@ -66,41 +66,30 @@ function handleImageUpload(file) {
     }
 }
 
-// Funktion zum Erstellen des Posts
-function createPost() {
-    const imagePreview = document.getElementById('imagePreview');
-    const caption = document.getElementById('captionInput').value;
-    const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
-    
-    // Prüfe ob ein Bild ausgewählt wurde
-    if (!imagePreview.querySelector('img')) {
-        alert('Bitte wähle ein Bild aus!');
-        return;
-    }
+async function createPost() {
+  const imageEl = document.getElementById('imagePreview').querySelector('img');
+  const caption = document.getElementById('captionInput').value.trim();
 
-    // Hole das Bild als Base64-String
-    const imageData = imagePreview.querySelector('img').src;
-    
-    // Hole existierende Posts aus dem localStorage oder erstelle leeres Array
-    let posts = JSON.parse(localStorage.getItem('posts') || '[]');
-    
-    // Erstelle neuen Post
-    const newPost = {
-        id: Date.now(),
-        username: currentUser?.username || 'Fullydefense',
-        image: imageData,
-        caption: caption,
-        date: new Date().toISOString(),
-        likes: 0,
-        userAvatar: 'default-avatar.png'
-    };
-    
-    // Füge neuen Post am Anfang des Arrays hinzu
-    posts.unshift(newPost);
-    
-    // Speichere aktualisierte Posts
-    localStorage.setItem('posts', JSON.stringify(posts));
-    
-    alert('Beitrag wurde erfolgreich erstellt!');
-    window.location.href = 'homepage.html';
+  if (!imageEl) { alert('Bitte wähle ein Bild aus!'); return; }
+
+  const user = await sbUser();
+  if (!user) { alert('Bitte zuerst einloggen.'); window.location.href = 'index.html'; return; }
+
+  const fileInput = document.getElementById('imageInput');
+  const file = fileInput.files?.[0];
+  if (!file) { alert('Fehler: Datei nicht gefunden. Bitte Bild erneut wählen.'); return; }
+
+  const filename = `${user.id}/${Date.now()}_${file.name}`;
+  const { error: upErr } = await sb.storage.from('images').upload(filename, file, {
+    cacheControl: '3600', upsert: false
+  });
+  if (upErr) { alert(upErr.message); return; }
+
+  const { error: dbErr } = await sb.from('posts').insert({
+    user_id: user.id, image_path: filename, caption
+  });
+  if (dbErr) { alert(dbErr.message); return; }
+
+  alert('Beitrag wurde erfolgreich erstellt!');
+  window.location.href = 'homepage.html';
 }

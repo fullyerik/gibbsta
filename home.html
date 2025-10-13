@@ -6,6 +6,14 @@
     <title>Gibbsta - Home</title>
     <link rel="stylesheet" href="home-styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+       <script>
+            const SUPABASE_URL = "https://sdmlprsgxgrnzoqvgyqz.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbWxwcnNneGdybnpvcXZneXF6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDMyMDk4NiwiZXhwIjoyMDc1ODk2OTg2fQ.rWp3zL2V37X76_PdQAq-pw4uSzpOIyeQ9l3bjEC7tCM";
+        window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        async function sbUser() { return (await sb.auth.getUser()).data.user; }
+        function publicUrl(path) { return sb.storage.from('images').getPublicUrl(path).data.publicUrl; }
+    </script>
 </head>
 <body>
     <nav class="top-nav">
@@ -62,43 +70,25 @@
                 <button class="view-comments">Alle 45 Kommentare anzeigen</button>
             </div>
             <div class="post-time">VOR 2 STUNDEN</div>
+            <div id="feedGrid" class="posts-grid"></div>
         </div>
-    <!-- Bottom Navigation für alle HTML-Dateien -->
-<nav class="bottom-nav">
-    <div class="nav-container">
-        <!-- Home Icon -->
-        <button class="nav-item" onclick="location.href='home.html'">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-            </svg>
-        </button>
 
-        <!-- Search Icon -->
-        <button class="nav-item" onclick="location.href='search.html'">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"/>
-                <path d="m21 21-4.35-4.35"/>
-            </svg>
-        </button>
-
-        <!-- Plus Icon -->
-        <button class="nav-item plus-btn" onclick="location.href='post.html'">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-        </button>
-
-        <!-- Profile Icon -->
-        <button class="nav-item" onclick="location.href='homepage.html'">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-                <circle cx="12" cy="8" r="4"/>
-                <path d="M12 14c-4.5 0-8 2.5-8 5v1h16v-1c0-2.5-3.5-5-8-5z"/>
-            </svg>
-        </button>
-    </div>
-</nav>
-
+    <nav class="bottom-nav">
+        <div class="nav-container">
+            <button class="nav-item" onclick="location.href='home.html'">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            </button>
+            <button class="nav-item" onclick="location.href='search.html'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </button>
+            <button class="nav-item plus-btn" onclick="location.href='post.html'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
+            <button class="nav-item" onclick="location.href='homepage.html'">
+                <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M12 14c-4.5 0-8 2.5-8 5v1h16v-1c0-2.5-3.5-5-8-5z"/></svg>
+            </button>
+        </div>
+    </nav>
     <script>
         function logout() {
             // Lösche die Session-Daten
@@ -116,7 +106,50 @@
                 // Wenn nicht eingeloggt, zurück zum Login
                 window.location.href = 'index.html';
             }
-        });
+        });     
     </script>
+    <script>
+async function loadPosts({ onlyMine = false } = {}) {
+  const user = await sbUser();
+  let q = sb.from('posts').select('id,user_id,image_path,caption,created_at')
+             .order('created_at', { ascending: false });
+  if (onlyMine && user) q = q.eq('user_id', user.id);
+
+  const { data: posts, error } = await q;
+  if (error) { console.error(error); return; }
+
+  const grid = document.getElementById('feedGrid');
+  if (!grid) {
+  console.warn('Feed-Container #feedGrid nicht gefunden.');
+  return; }
+
+  const counter = document.getElementById('postCount');
+  if (counter) counter.textContent = posts.length;
+
+  grid.innerHTML = posts.map(p => `
+    <div class="post">
+      <div class="post-header">
+        <img src="default-avatar.png" class="user-avatar" />
+        <div class="username">@${p.user_id.slice(0,8)}</div>
+        <button class="more-options">⋯</button>
+      </div>
+      <div class="post-image"><img src="${publicUrl(p.image_path)}" alt="Post"></div>
+      <div class="post-actions">
+        <button title="Like"><i class="far fa-heart"></i></button>
+        <button title="Kommentieren"><i class="far fa-comment"></i></button>
+        <button class="save-post" title="Speichern"><i class="far fa-bookmark"></i></button>
+      </div>
+      <div class="post-caption"><b>@${p.user_id.slice(0,8)}</b> ${p.caption ?? ''}</div>
+      <div class="post-time">${new Date(p.created_at).toLocaleString('de-CH')}</div>
+    </div>
+  `).join('') || `
+    <div class="no-posts">
+      <i class="far fa-image"></i>
+      <h2>Keine Beiträge</h2>
+      <p>Erstelle deinen ersten Beitrag über das Plus unten.</p>
+    </div>`;
+}
+document.addEventListener('DOMContentLoaded', () => loadPosts({ onlyMine:false }));
+</script>
 </body>
 </html>
