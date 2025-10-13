@@ -151,5 +151,55 @@ async function loadPosts({ onlyMine = false } = {}) {
 }
 document.addEventListener('DOMContentLoaded', () => loadPosts({ onlyMine:false }));
 </script>
+<script>
+  function publicUrl(path){ return sb.storage.from('images').getPublicUrl(path).data.publicUrl; }
+
+  async function loadFeed() {
+    const feed = document.getElementById('feed');
+    feed.innerHTML = '';
+
+    // neueste zuerst
+    const { data: posts, error } = await sb
+      .from('posts')
+      .select('id, user_id, caption, image_path, created_at, image_name')
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (error) { console.error(error); feed.innerHTML = '<p>Fehler beim Laden.</p>'; return; }
+
+    if (!posts.length) {
+      feed.innerHTML = `
+        <div class="no-posts">
+          <i>🖼️</i>
+          <h2>Noch keine Beiträge</h2>
+          <p>Erstelle deinen ersten Beitrag über das Plus unten.</p>
+        </div>`;
+      return;
+    }
+
+    // Karten rendern – nutzt deine Home-Styles (post-Klassen) 
+    posts.forEach(p => {
+      const url = publicUrl(p.image_path);
+      const html = `
+      <article class="post">
+        <header class="post-header">
+          <img class="user-avatar" src="assets/img/default-avatar.png" alt="avatar">
+          <div class="username">@${p.user_id.slice(0,8)}</div>
+          <button class="more-options">⋯</button>
+        </header>
+        <div class="post-image"><img src="${url}" alt="${p.image_name || ''}" onerror="this.src='assets/img/image-placeholder.png'"></div>
+        <div class="post-actions">
+          <button title="Like">♥</button>
+          <button title="Kommentieren">💬</button>
+          <button class="save-post" title="Speichern">🔖</button>
+        </div>
+        <div class="post-caption"><b>${p.image_name || ''}</b> ${p.caption ? ' – ' + p.caption : ''}</div>
+        <div class="post-time">${new Date(p.created_at).toLocaleString()}</div>
+      </article>`;
+      feed.insertAdjacentHTML('beforeend', html);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', loadFeed);
+</script>
 </body>
 </html>
