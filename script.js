@@ -54,13 +54,12 @@ function checkAge() {
     
     parentalConsentGroup.style.display = age === '13-17' ? 'flex' : 'none';
 }
+
 async function register() {
   const username = document.getElementById('regUser').value.trim();
   const email    = document.getElementById('regEmail').value.trim();
   const password = document.getElementById('regPass').value;
   const msg = document.getElementById('message');
-
-  // (Deine bisherigen Validierungen für AGB/Passwort/Alter bleiben davor bestehen)
 
   try {
     // 1) Username-Verfügbarkeit prüfen
@@ -68,9 +67,10 @@ async function register() {
       .from('profiles')
       .select('id')
       .eq('username', username)
-      .maybeSingle(); // gibt null zurück, wenn nicht gefunden
+      .range(0, 0); // exakt 1 Zeile statt maybeSingle()
+
     if (nameErr) throw nameErr;
-    if (existingUser) {
+    if (existingUser && existingUser[0]) {
       msg.textContent = 'Benutzername ist bereits vergeben. Bitte wähle einen anderen.';
       msg.className = 'error';
       return;
@@ -81,28 +81,23 @@ async function register() {
       email, password, options: { data: { username } }
     });
     if (error) {
-      // Typischer Fall: E-Mail schon registriert
       if (error.message?.toLowerCase().includes('already registered')) {
         msg.textContent = 'Diese E-Mail ist bereits registriert. Bitte logge dich ein.';
         msg.className = 'error';
         return;
       }
       throw error;
-      }
-      await sb.from('profiles').upsert(
-    { id: user.id, username, display_name: username, email },  // ← email dazu
-    { onConflict: 'id' }
-    );
+    }
 
     const user = data.user;
     if (!user) throw new Error('Registrierung fehlgeschlagen.');
 
-    // 3) Profil anlegen/aktualisieren (UPsert statt Insert!)
+    // 3) Profil anlegen/aktualisieren
     const { error: pErr } = await sb
       .from('profiles')
       .upsert(
-        { id: user.id, username, display_name: username },
-        { onConflict: 'id' } // wichtig: verhindert Duplicate Key-Fehler
+        { id: user.id, username, display_name: username, email },
+        { onConflict: 'id' }
       );
     if (pErr) throw pErr;
 
@@ -192,6 +187,7 @@ function findUserByEmailOrUsername(identifier) {
     }
     return null;
 }
+
 async function login() {
   const identifier = document.getElementById('logUser').value.trim(); // E-Mail ODER Benutzername
   const password   = document.getElementById('logPass').value;
@@ -206,21 +202,22 @@ async function login() {
   try {
     let emailForLogin = identifier;
 
-    // Wenn kein '@' drin ist → als Benutzername behandeln
+    // Wenn kein '@' drin ist → als Benutzername behandeln → erste passende E-Mail holen
     if (!identifier.includes('@')) {
-      const { data: prof, error: lookupErr } = await sb
+      const { data: rows, error: lookupErr } = await sb
         .from('profiles')
         .select('email')
-        .ilike('username', identifier)   // case-insensitive Suche
-        .maybeSingle();
+        .ilike('username', identifier)
+        .range(0, 0); // exakt 1 Zeile
 
       if (lookupErr) throw lookupErr;
-      if (!prof || !prof.email) {
-        msg.textContent = 'Benutzername nicht gefunden. Bitte E-Mail verwenden oder zuerst einmal mit E-Mail einloggen.';
+      const row = rows && rows[0];
+      if (!row || !row.email) {
+        msg.textContent = 'Benutzername nicht gefunden. Bitte E-Mail verwenden oder zuerst mit E-Mail einloggen.';
         msg.className = 'error';
         return;
       }
-      emailForLogin = prof.email;
+      emailForLogin = row.email;
     }
 
     // Normales E-Mail+Passwort-Login
@@ -239,19 +236,22 @@ async function login() {
 
     const user = data.user;
 
-    // Falls im Profil noch keine E-Mail gespeichert war → jetzt nachtragen
+    // Email ins Profil nachtragen (id sollte UNIQUE sein; Upsert ist idempotent)
     await sb.from('profiles').upsert(
       { id: user.id, email: user.email },
       { onConflict: 'id' }
     );
 
-    // Dein bestehender Profil-Fetch / Session bleibt wie gehabt
-    const { data: prof, error: pErr } = await sb
+    // Profil lesen → nur die erste Zeile nehmen (kein .single()!)
+    const { data: profRows, error: pErr } = await sb
       .from('profiles')
       .select('role, username')
       .eq('id', user.id)
-      .single();
+      .range(0, 0);
+
     if (pErr) throw pErr;
+
+    const prof = (profRows && profRows[0]) || null;
 
     sessionStorage.setItem('currentUser', JSON.stringify({
       id: user.id,
@@ -263,25 +263,10 @@ async function login() {
     window.location.href = 'home.html';
   } catch (e) {
     console.error(e);
-    msg.textContent = 'Login fehlgeschlagen: ' + (e.message || e);
-    msg.className = 'error';
+    // Fängt auch den „Cannot coerce…“-Fall ab
+    document.getElementById('message').textContent = 'Login fehlgeschlagen: ' + (e.message || e);
+    document.getElementById('message').className = 'error';
   }
-}
-
-// Beispiel für Verwendung der Berechtigungen
-function checkUserPermissions() {
-    const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
-    
-    // Beispiele für Berechtigungsprüfungen
-    if (hasPermission(currentUser, 'delete_posts')) {
-        // Zeige Delete-Button an
-        showDeleteButtons();
-    }
-    
-    if (hasPermission(currentUser, 'ban_users')) {
-        // Zeige Ban-Option an
-        showBanOptions();
-    }
 }
 
 document.getElementById('regPass').addEventListener('input', function(e) {

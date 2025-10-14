@@ -1,205 +1,78 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gibbsta - Home</title>
-    <link rel="stylesheet" href="home-styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-       <script>
-            const SUPABASE_URL = "https://sdmlprsgxgrnzoqvgyqz.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbWxwcnNneGdybnpvcXZneXF6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDMyMDk4NiwiZXhwIjoyMDc1ODk2OTg2fQ.rWp3zL2V37X76_PdQAq-pw4uSzpOIyeQ9l3bjEC7tCM";
-        window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        async function sbUser() { return (await sb.auth.getUser()).data.user; }
-        function publicUrl(path) { return sb.storage.from('images').getPublicUrl(path).data.publicUrl; }
-    </script>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gibbsta – Home</title>
+  <link rel="stylesheet" href="home-styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL="https://sdmlprsgxgrnzoqvgyqz.supabase.co";
+    const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbWxwcnNneGdybnpvcXZneXF6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDMyMDk4NiwiZXhwIjoyMDc1ODk2OTg2fQ.rWp3zL2V37X76_PdQAq-pw4uSzpOIyeQ9l3bjEC7tCM";
+    window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    function publicUrl(path){return sb.storage.from('images').getPublicUrl(path).data.publicUrl;}
+  </script>
 </head>
 <body>
-    <nav class="top-nav">
-        <div class="nav-left">
-            <img src="https://i.ibb.co/Q7mG5wr3/Gibbsta-Logo-Haupt.png" alt="Gibbsta Logo" class="nav-logo">
-        </div>
-        <div class="nav-center">
-            <div class="notifications">
-                <a href="mitteilungen.html" style="color: inherit; text-decoration: none;">
-                    <i class="fas fa-inbox"></i>
-                    <span class="notification-badge">3</span>
-                </a>
-            </div>
-            <div class="notifications">
-                <a href="posteingang.html" style="color: inherit; text-decoration: none;">
-                    <i class="fas fa-heart"></i>
-                    <span class="notification-badge">5</span>
-                </a>
-            </div>
-        </div>
-        <div class="nav-right">
-            <button class="feed-toggle active">Für dich</button>
-            <button class="feed-toggle" onclick="window.location.href='following.html'">Gefolgt</button>
-            <button class="feed-toggle" onclick="window.location.href='favorite.html'">Favoriten</button>
-            <button class="logout-btn" onclick="logout()">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </button>
-        </div>
-    </nav>
-
-    <main class="content">
-        <!-- Hier kommen später die Posts hin -->
-        <div class="post">
-            <div class="post-header">
-                <img src="default-avatar.png" alt="User Avatar" class="user-avatar">
-                <span class="username">Beispiel_User</span>
-                <button class="more-options"><i class="fas fa-ellipsis"></i></button>
-            </div>
-            <div class="post-image">
-                <img src="example-post.jpg" alt="Post Image">
-            </div>
-            <div class="post-actions">
-                <button><i class="far fa-heart"></i></button>
-                <button><i class="far fa-comment"></i></button>
-                <button><i class="far fa-paper-plane"></i></button>
-                <button class="save-post"><i class="far fa-bookmark"></i></button>
-            </div>
-            <div class="post-likes">123 Likes</div>
-            <div class="post-caption">
-                <span class="username">Beispiel_User</span>
-                <span class="caption-text">Das ist ein Beispiel-Post! #gibbsta #awesome</span>
-            </div>
-            <div class="post-comments">
-                <button class="view-comments">Alle 45 Kommentare anzeigen</button>
-            </div>
-            <div class="post-time">VOR 2 STUNDEN</div>
-            <div id="feedGrid" class="posts-grid"></div>
-        </div>
-
-    <nav class="bottom-nav">
-        <div class="nav-container">
-            <button class="nav-item" onclick="location.href='home.html'">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-            </button>
-            <button class="nav-item" onclick="location.href='search.html'">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            </button>
-            <button class="nav-item plus-btn" onclick="location.href='post.html'">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            </button>
-            <button class="nav-item" onclick="location.href='homepage.html'">
-                <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M12 14c-4.5 0-8 2.5-8 5v1h16v-1c0-2.5-3.5-5-8-5z"/></svg>
-            </button>
-        </div>
-    </nav>
-    <script>
-        function logout() {
-            // Lösche die Session-Daten
-            sessionStorage.removeItem('currentUser');
-            localStorage.removeItem('isLoggedIn');
-            
-            // Weiterleitung zur Login-Seite
-            window.location.href = 'index.html';
-        }
-
-        // Prüfe beim Laden der Seite, ob User eingeloggt ist
-        document.addEventListener('DOMContentLoaded', function() {
-            const currentUser = sessionStorage.getItem('currentUser');
-            if (!currentUser) {
-                // Wenn nicht eingeloggt, zurück zum Login
-                window.location.href = 'index.html';
-            }
-        });     
-    </script>
-    <script>
-async function loadPosts({ onlyMine = false } = {}) {
-  const user = await sbUser();
-  let q = sb.from('posts').select('id,user_id,image_path,caption,created_at')
-             .order('created_at', { ascending: false });
-  if (onlyMine && user) q = q.eq('user_id', user.id);
-
-  const { data: posts, error } = await q;
-  if (error) { console.error(error); return; }
-
-  const grid = document.getElementById('feedGrid');
-  if (!grid) {
-  console.warn('Feed-Container #feedGrid nicht gefunden.');
-  return; }
-
-  const counter = document.getElementById('postCount');
-  if (counter) counter.textContent = posts.length;
-
-  grid.innerHTML = posts.map(p => `
-    <div class="post">
-      <div class="post-header">
-        <img src="default-avatar.png" class="user-avatar" />
-        <div class="username">@${p.user_id.slice(0,8)}</div>
-        <button class="more-options">⋯</button>
-      </div>
-      <div class="post-image"><img src="${publicUrl(p.image_path)}" alt="Post"></div>
-      <div class="post-actions">
-        <button title="Like"><i class="far fa-heart"></i></button>
-        <button title="Kommentieren"><i class="far fa-comment"></i></button>
-        <button class="save-post" title="Speichern"><i class="far fa-bookmark"></i></button>
-      </div>
-      <div class="post-caption"><b>@${p.user_id.slice(0,8)}</b> ${p.caption ?? ''}</div>
-      <div class="post-time">${new Date(p.created_at).toLocaleString('de-CH')}</div>
+  <header class="top-nav">
+    <div class="nav-left">
+      <img class="nav-logo" src="https://i.ibb.co/Q7mG5wr3/Gibbsta-Logo-Haupt.png" alt="Gibbsta">
     </div>
-  `).join('') || `
-    <div class="no-posts">
-      <i class="far fa-image"></i>
+    <div class="nav-center">
+      <button class="notifications" title="Mitteilungen" onclick="location.href='posteingang.html'">
+        <i class="fa-regular fa-bell"></i>
+        <span class="notification-badge" id="navNotifBadge" style="display:none">0</span>
+      </button>
+      <!-- Herz bleibt oben -->
+      <button class="notifications" title="Favoriten" onclick="location.href='favorite.html'">
+        <i class="fa-regular fa-heart"></i>
+      </button>
+    </div>
+    <div class="nav-right">
+      <button class="feed-toggle active" id="foryouBtn">Für dich</button>
+      <button class="feed-toggle" id="followingBtn">Gefolgt</button>
+      <button class="logout-btn" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+    </div>
+  </header>
+
+  <main class="content">
+    <div id="postsContainer"></div>
+    <div class="no-posts" id="emptyFeed" style="display:none">
+      <i class="fa-regular fa-images"></i>
       <h2>Keine Beiträge</h2>
-      <p>Erstelle deinen ersten Beitrag über das Plus unten.</p>
-    </div>`;
-}
-document.addEventListener('DOMContentLoaded', () => loadPosts({ onlyMine:false }));
-</script>
-<script>
-  function publicUrl(path){ return sb.storage.from('images').getPublicUrl(path).data.publicUrl; }
+      <p>Folge Accounts oder erstelle deinen ersten Post.</p>
+      <button class="follow-btn" onclick="location.href='post.html'">Jetzt posten</button>
+    </div>
+  </main>
 
-  async function loadFeed() {
-    const feed = document.getElementById('feed');
-    feed.innerHTML = '';
+  <!-- Bottom-Navigation -->
+  <nav class="bottom-nav">
+    <div class="nav-container">
+      <button class="nav-item" onclick="location.href='home.html'" title="Home">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      </button>
+      <button class="nav-item" onclick="location.href='search.html'" title="Suche">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </button>
+      <button class="nav-item plus-btn" onclick="location.href='post.html'" title="Posten">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <!-- NEU: Profil unten statt Herz -->
+      <button class="nav-item" onclick="location.href='homepage.html'" title="Profil">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="12" cy="8" r="4"></circle>
+          <path d="M12 14c-4.5 0-8 2.5-8 5v1h16v-1c0-2.5-3.5-5-8-5z"></path>
+        </svg>
+      </button>
+    </div>
+  </nav>
 
-    // neueste zuerst
-    const { data: posts, error } = await sb
-      .from('posts')
-      .select('id, user_id, caption, image_path, created_at, image_name')
-      .order('created_at', { ascending: false })
-      .limit(50);
-    if (error) { console.error(error); feed.innerHTML = '<p>Fehler beim Laden.</p>'; return; }
-
-    if (!posts.length) {
-      feed.innerHTML = `
-        <div class="no-posts">
-          <i>🖼️</i>
-          <h2>Noch keine Beiträge</h2>
-          <p>Erstelle deinen ersten Beitrag über das Plus unten.</p>
-        </div>`;
-      return;
-    }
-
-    // Karten rendern – nutzt deine Home-Styles (post-Klassen) 
-    posts.forEach(p => {
-      const url = publicUrl(p.image_path);
-      const html = `
-      <article class="post">
-        <header class="post-header">
-          <img class="user-avatar" src="assets/img/default-avatar.png" alt="avatar">
-          <div class="username">@${p.user_id.slice(0,8)}</div>
-          <button class="more-options">⋯</button>
-        </header>
-        <div class="post-image"><img src="${url}" alt="${p.image_name || ''}" onerror="this.src='assets/img/image-placeholder.png'"></div>
-        <div class="post-actions">
-          <button title="Like">♥</button>
-          <button title="Kommentieren">💬</button>
-          <button class="save-post" title="Speichern">🔖</button>
-        </div>
-        <div class="post-caption"><b>${p.image_name || ''}</b> ${p.caption ? ' – ' + p.caption : ''}</div>
-        <div class="post-time">${new Date(p.created_at).toLocaleString()}</div>
-      </article>`;
-      feed.insertAdjacentHTML('beforeend', html);
-    });
-  }
-
-  document.addEventListener('DOMContentLoaded', loadFeed);
-</script>
+  <script src="home-script.js"></script>
+  <script>
+    // Buttons verknüpfen (Für dich/Gefolgt)
+    document.getElementById('foryouBtn')?.addEventListener('click', ()=>location.href='home.html');
+    document.getElementById('followingBtn')?.addEventListener('click', ()=>location.href='following.html');
+  </script>
 </body>
 </html>

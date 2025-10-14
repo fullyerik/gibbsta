@@ -1,479 +1,213 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Folge ich - GIBBSTA</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Folge ich – GIBBSTA</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:#fafafa;color:#262626;min-height:100vh;display:flex;flex-direction:column}
+    .header{background:#fff;border-bottom:1px solid #dbdbdb;padding:16px 0;position:sticky;top:0;z-index:10;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+    .nav{max-width:935px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;padding:0 20px}
+    .back-btn{background:transparent;border:none;cursor:pointer;padding:8px;border-radius:50%}
+    .back-btn:hover{background:#f5f5f5}
+    .back-btn svg{width:24px;height:24px}
+    .page-title{font-size:20px;font-weight:600}
+    .spacer{width:40px}
+    .main{flex:1;max-width:935px;margin:0 auto;padding:20px;width:100%}
+    .search-card{background:#fff;border-radius:12px;padding:24px;margin-bottom:24px;box-shadow:0 1px 3px rgba(0,0,0,.1);border:1px solid #dbdbdb}
+    .search-wrap{position:relative;max-width:500px;margin:0 auto}
+    .search-input{width:100%;padding:14px 20px 14px 50px;border:1px solid #dbdbdb;border-radius:25px;background:#fafafa;font-size:14px}
+    .search-input:focus{outline:none;border-color:#0095f6;background:#fff;box-shadow:0 0 10px rgba(0,149,246,.1)}
+    .search-icon{position:absolute;left:18px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:#8e8e8e}
+    .card{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.1);border:1px solid #dbdbdb;overflow:hidden}
+    .card-h{padding:20px 24px;border-bottom:1px solid #dbdbdb;background:#fafafa}
+    .title{font-size:16px;font-weight:600;margin-bottom:4px}
+    .count{font-size:14px;color:#8e8e8e}
+    .list{padding:0}
+    .row{display:flex;align-items:center;padding:16px 24px;border-bottom:1px solid #efefef;gap:14px;cursor:pointer}
+    .row:last-child{border-bottom:none}
+    .row:hover{background:#fafafa}
+    .ava{width:50px;height:50px;border-radius:50%;object-fit:cover;border:2px solid #dbdbdb;flex-shrink:0}
+    .info{flex:1;min-width:0}
+    .uname{font-size:15px;font-weight:600}
+    .dname{font-size:14px;color:#8e8e8e}
+    .btn{border:none;border-radius:6px;padding:8px 14px;font-weight:600;cursor:pointer;transition:.2s min-width 90px}
+    .btn-plain{background:transparent;border:1px solid #dbdbdb}
+    .btn-plain:hover{background:#f5f5f5}
+    .empty,.nores{text-align:center;padding:60px 24px;color:#8e8e8e}
+    .empty svg{width:80px;height:80px;margin:0 auto 20px;opacity:.5}
+    @media (max-width:768px){.main{padding:16px} .row{padding:12px 16px} .card-h{padding:16px 20px}}
+  </style>
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: #fafafa;
-            color: #262626;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .header {
-            background: #fff;
-            border-bottom: 1px solid #dbdbdb;
-            padding: 16px 0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-
-        .nav {
-            max-width: 935px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 20px;
-        }
-
-        .back-btn {
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 50%;
-            transition: all 0.2s ease;
-        }
-
-        .back-btn:hover {
-            background: #f5f5f5;
-        }
-
-        .back-btn svg {
-            width: 24px;
-            height: 24px;
-            color: #262626;
-        }
-
-        .page-title {
-            font-size: 20px;
-            font-weight: 600;
-            color: #262626;
-        }
-
-        .spacer {
-            width: 40px;
-        }
-
-        .main-content {
-            flex: 1;
-            max-width: 935px;
-            margin: 0 auto;
-            padding: 20px;
-            width: 100%;
-        }
-
-        .search-section {
-            background: #fff;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border: 1px solid #dbdbdb;
-        }
-
-        .search-container {
-            position: relative;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 14px 20px 14px 50px;
-            border: 1px solid #dbdbdb;
-            border-radius: 25px;
-            background: #fafafa;
-            font-size: 14px;
-            color: #262626;
-            transition: all 0.2s ease;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: #0095f6;
-            background: #fff;
-            box-shadow: 0 0 10px rgba(0, 149, 246, 0.1);
-        }
-
-        .search-input::placeholder {
-            color: #8e8e8e;
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 18px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 16px;
-            height: 16px;
-            color: #8e8e8e;
-        }
-
-        .following-section {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border: 1px solid #dbdbdb;
-            overflow: hidden;
-        }
-
-        .section-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid #dbdbdb;
-            background: #fafafa;
-        }
-
-        .section-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #262626;
-            margin-bottom: 4px;
-        }
-
-        .following-count {
-            font-size: 14px;
-            color: #8e8e8e;
-        }
-
-        .following-list {
-            padding: 0;
-        }
-
-        .user-item {
-            display: flex;
-            align-items: center;
-            padding: 16px 24px;
-            border-bottom: 1px solid #efefef;
-            transition: background-color 0.2s ease;
-            cursor: pointer;
-        }
-
-        .user-item:hover {
-            background: #fafafa;
-        }
-
-        .user-item:last-child {
-            border-bottom: none;
-        }
-
-        .user-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #dbdbdb;
-            margin-right: 16px;
-            flex-shrink: 0;
-        }
-
-        .user-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .username {
-            font-size: 15px;
-            font-weight: 600;
-            color: #262626;
-            margin-bottom: 2px;
-        }
-
-        .display-name {
-            font-size: 14px;
-            color: #8e8e8e;
-        }
-
-        .follow-btn {
-            background: #0095f6;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
-            transition: all 0.2s ease;
-            min-width: 90px;
-        }
-
-        .follow-btn:hover {
-            background: #1877f2;
-        }
-
-        .follow-btn.following {
-            background: transparent;
-            color: #262626;
-            border: 1px solid #dbdbdb;
-        }
-
-        .follow-btn.following:hover {
-            background: #f5f5f5;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 24px;
-            color: #8e8e8e;
-        }
-
-        .empty-icon {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 20px;
-            opacity: 0.5;
-        }
-
-        .empty-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #262626;
-        }
-
-        .empty-description {
-            font-size: 14px;
-            line-height: 1.5;
-            max-width: 300px;
-            margin: 0 auto;
-        }
-
-        .no-results {
-            text-align: center;
-            padding: 40px 24px;
-            color: #8e8e8e;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        @media (max-width: 768px) {
-            .main-content {
-                padding: 16px;
-            }
-
-            .search-section,
-            .following-section {
-                margin-bottom: 16px;
-            }
-
-            .user-item {
-                padding: 12px 16px;
-            }
-
-            .section-header {
-                padding: 16px 20px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .nav {
-                padding: 0 16px;
-            }
-
-            .page-title {
-                font-size: 18px;
-            }
-
-            .search-section {
-                padding: 20px;
-            }
-
-            .user-avatar {
-                width: 40px;
-                height: 40px;
-                margin-right: 12px;
-            }
-
-            .username {
-                font-size: 14px;
-            }
-
-            .display-name {
-                font-size: 13px;
-            }
-        }
-    </style>
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL="https://sdmlprsgxgrnzoqvgyqz.supabase.co";
+    const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbWxwcnNneGdybnpvcXZneXF6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDMyMDk4NiwiZXhwIjoyMDc1ODk2OTg2fQ.rWp3zL2V37X76_PdQAq-pw4uSzpOIyeQ9l3bjEC7tCM";
+    window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  </script>
 </head>
 <body>
-    <header class="header">
-        <nav class="nav">
-            <button class="back-btn" onclick="navigateToHome()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="m15 18-6-6 6-6"/>
-                </svg>
-            </button>
-            <h1 class="page-title">Folge ich</h1>
-            <div class="spacer"></div>
-        </nav>
-    </header>
+  <header class="header">
+    <nav class="nav">
+      <button class="back-btn" onclick="location.href='home.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <h1 class="page-title">Folge ich</h1>
+      <div class="spacer"></div>
+    </nav>
+  </header>
 
-    <main class="main-content">
-        <div class="search-section">
-            <div class="search-container">
-                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="8"/>
-                    <path d="m21 21-4.35-4.35"/>
-                </svg>
-                <input type="text" class="search-input" placeholder="Suche in den Personen, denen du folgst..." id="searchInput">
-            </div>
+  <main class="main">
+    <section class="search-card">
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="q" type="text" class="search-input" placeholder="Suche in den Personen, denen du folgst…">
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-h">
+        <div class="title">Folge ich</div>
+        <div class="count" id="cnt">0 Personen</div>
+      </div>
+      <div class="list" id="list">
+        <div class="empty" id="empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          <h3 style="font-size:18px;font-weight:600;color:#262626;margin-bottom:8px">Du folgst noch niemandem</h3>
+          <p style="max-width:320px;margin:0 auto">Wenn du anderen Personen folgst, werden sie hier angezeigt.</p>
         </div>
-
-        <div class="following-section">
-            <div class="section-header">
-                <h2 class="section-title">Folge ich</h2>
-                <p class="following-count" id="followingCount">0 Personen</p>
-            </div>
-            
-            <div class="following-list" id="followingList">
-                <!-- Empty State -->
-                <div class="empty-state" id="emptyState">
-                    <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                        <circle cx="9" cy="7" r="4"/>
-                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                    </svg>
-                    <h3 class="empty-title">Du folgst noch niemandem</h3>
-                    <p class="empty-description">Wenn du anderen Personen folgst, werden sie hier angezeigt. Entdecke neue Profile und bleibe mit deinen Lieblingscreatoren in Verbindung.</p>
-                </div>
-
-                <!-- No search results -->
-                <div class="no-results hidden" id="noResults">
-                    <h3 class="empty-title">Keine Ergebnisse gefunden</h3>
-                    <p class="empty-description">Versuche einen anderen Suchbegriff.</p>
-                </div>
-            </div>
+        <div class="nores" id="nores" style="display:none">
+          <h3 style="font-size:18px;font-weight:600;color:#262626;margin-bottom:8px">Keine Ergebnisse</h3>
+          <p>Versuche einen anderen Suchbegriff.</p>
         </div>
-    </main>
+      </div>
+    </section>
+  </main>
 
-    <script>
-        // Dummy data - in einer echten App würde das von einer API kommen
-        let followingUsers = [
-            // Aktuell leer, da der User niemandem folgt
-        ];
+  <script>
+    let CU = null;
+    let following = [];       // [{id, username, displayName, avatar}]
+    let filtered = [];
 
-        let filteredUsers = [];
+    const LS = {
+      key(uid){ return `following_${uid}`; },
+      read(uid){ try{return JSON.parse(localStorage.getItem(this.key(uid))||'[]');}catch{return[];} },
+      write(uid,arr){ localStorage.setItem(this.key(uid), JSON.stringify(arr)); }
+    };
 
-        // Navigation Funktionen
-        function navigateToHome() {
-            window.location.href = 'home.html';
-        }
+    const el = s => document.querySelector(s);
+    const listEl = el('#list'), emptyEl = el('#empty'), noresEl = el('#nores'), cntEl = el('#cnt');
 
-        function navigateToProfile() {
-            window.location.href = 'homepage.html';
-        }
+    el('#q').addEventListener('input', () => {
+      const t = el('#q').value.trim().toLowerCase();
+      filtered = !t ? following : following.filter(u =>
+        u.username.toLowerCase().includes(t) || (u.displayName||'').toLowerCase().includes(t)
+      );
+      render();
+    });
 
-        // Search Funktionalität
-        document.getElementById('searchInput').addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase().trim();
-            
-            if (searchTerm === '') {
-                filteredUsers = followingUsers;
-            } else {
-                filteredUsers = followingUsers.filter(user => 
-                    user.username.toLowerCase().includes(searchTerm) ||
-                    user.displayName.toLowerCase().includes(searchTerm)
-                );
-            }
-            
-            renderFollowingList();
-        });
+    function render(){
+      // remove existing rows
+      listEl.querySelectorAll('.row').forEach(r => r.remove());
 
-        // Following List rendern
-        function renderFollowingList() {
-            const followingList = document.getElementById('followingList');
-            const emptyState = document.getElementById('emptyState');
-            const noResults = document.getElementById('noResults');
-            const searchTerm = document.getElementById('searchInput').value.trim();
+      const t = el('#q').value.trim();
+      const arr = filtered;
 
-            // Alle bisherigen User-Items entfernen
-            const existingItems = followingList.querySelectorAll('.user-item');
-            existingItems.forEach(item => item.remove());
+      // states
+      emptyEl.style.display = following.length ? 'none' : 'block';
+      noresEl.style.display = (following.length && t && arr.length===0) ? 'block' : 'none';
 
-            if (followingUsers.length === 0) {
-                // Zeige Empty State wenn der User niemandem folgt
-                emptyState.classList.remove('hidden');
-                noResults.classList.add('hidden');
-            } else if (filteredUsers.length === 0 && searchTerm !== '') {
-                // Zeige "Keine Ergebnisse" wenn Suche leer ist
-                emptyState.classList.add('hidden');
-                noResults.classList.remove('hidden');
-            } else {
-                // Verstecke Empty States und zeige User
-                emptyState.classList.add('hidden');
-                noResults.classList.add('hidden');
+      // rows
+      arr.forEach(u=>{
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.innerHTML = `
+          <img class="ava" src="${u.avatar || 'assets/img/default-avatar.png'}" alt="${u.username}">
+          <div class="info">
+            <div class="uname">@${u.username}</div>
+            <div class="dname">${u.displayName || ''}</div>
+          </div>
+          <button class="btn btn-plain" title="Entfolgen">Entfolgen</button>
+        `;
+        // Klick auf Row -> (optional) Profil öffnen
+        row.addEventListener('click', (e)=>{ if(e.target.tagName.toLowerCase()==='button') return; window.location.href='homepage.html'; });
+        // Entfolgen
+        row.querySelector('button').addEventListener('click', (e)=>{ e.stopPropagation(); unfollow(u.id); });
+        listEl.insertBefore(row, emptyEl);
+      });
 
-                filteredUsers.forEach(user => {
-                    const userItem = document.createElement('div');
-                    userItem.className = 'user-item';
-                    userItem.innerHTML = `
-                        <img src="${user.avatar}" alt="${user.username}" class="user-avatar">
-                        <div class="user-info">
-                            <div class="username">${user.username}</div>
-                            <div class="display-name">${user.displayName}</div>
-                        </div>
-                        <button class="follow-btn following" onclick="unfollowUser('${user.id}')">
-                            Folge ich
-                        </button>
-                    `;
-                    
-                    // User-Item vor den Empty States einfügen
-                    followingList.insertBefore(userItem, emptyState);
-                });
-            }
+      // count
+      const c = following.length;
+      cntEl.textContent = c === 1 ? '1 Person' : `${c} Personen`;
+    }
 
-            updateFollowingCount();
-        }
+    async function loadFollowingFromSupabase(uid){
+      try{
+        // 1) Beziehungen holen
+        const { data: rels, error: e1 } = await sb
+          .from('follows')
+          .select('following_id')
+          .eq('follower_id', uid);
 
-        // Following Count aktualisieren
-        function updateFollowingCount() {
-            const count = followingUsers.length;
-            const countElement = document.getElementById('followingCount');
-            
-            if (count === 0) {
-                countElement.textContent = '0 Personen';
-            } else if (count === 1) {
-                countElement.textContent = '1 Person';
-            } else {
-                countElement.textContent = `${count} Personen`;
-            }
-        }
+        if(e1) throw e1;
 
-        // User entfolgen
-        function unfollowUser(userId) {
-            followingUsers = followingUsers.filter(user => user.id !== userId);
-            
-            // Gefilterte Liste auch aktualisieren
-            filteredUsers = filteredUsers.filter(user => user.id !== userId);
-            
-            renderFollowingList();
-        }
+        const ids = (rels||[]).map(r=>r.following_id);
+        if(ids.length === 0) return [];
 
-        // Beispiel-Funktion um User hinzuzufügen (für Testzwecke)
-        function addFollowingUser(user) {
-            followingUsers.push(user);
-            filteredUsers = followingUsers;
-            renderFollowingList();
-        }
+        // 2) Profile der Gefolgten holen
+        const { data: profs, error: e2 } = await sb
+          .from('profiles')
+          .select('id, username, display_name, avatar_url')
+          .in('id', ids);
 
-        // Initial rendern
-        filteredUsers = followingUsers;
-        renderFollowingList();
-    </script>
+        if(e2) throw e2;
+
+        return (profs||[]).map(p=>({
+          id: p.id,
+          username: p.username || p.id.slice(0,8),
+          displayName: p.display_name || '',
+          avatar: p.avatar_url || 'assets/img/default-avatar.png'
+        }));
+      }catch(err){
+        // Fallback auf LocalStorage
+        console.warn('Follows DB nicht verfügbar – nutze localStorage', err);
+        return LS.read(uid);
+      }
+    }
+
+    async function unfollow(userId){
+      // Versuch Supabase… bei Fehler LocalStorage
+      try{
+        const { error } = await sb.from('follows')
+          .delete()
+          .eq('follower_id', CU.id)
+          .eq('following_id', userId);
+        if(error) throw error;
+      }catch{
+        // Fallback: LS
+        LS.write(CU.id, LS.read(CU.id).filter(u=>u.id!==userId));
+      }
+      following = following.filter(u=>u.id!==userId);
+      filtered = filtered.filter(u=>u.id!==userId);
+      render();
+    }
+
+    (async function init(){
+      const { data: { user } } = await sb.auth.getUser();
+      if(!user){ window.location.href='index.html'; return; }
+      CU = user;
+
+      following = await loadFollowingFromSupabase(CU.id);
+      filtered = following;
+      render();
+    })();
+  </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 /**
  * Vollständige, robuste Suche für Gibbsta.
  * - Tabs: Accounts / Beiträge
- * - Accounts: username/display_name + Avatar-Fallback
+ * - Accounts: username/display_name + Avatar-Fallback, KLICK → profile.html?uid=...
  * - Beiträge: caption + image_name (OR), Join auf profiles für @username, Klick → post.html?id=...
  * - Gute Logs & Fehlermeldungen im UI
  */
@@ -71,7 +71,7 @@ async function handleSearch() {
   }
 }
 
-/** Accounts-Suche */
+/** Accounts-Suche → klickbar zu profile.html?uid=... */
 async function searchAccounts(term, results) {
   console.debug("[Search] Accounts term=", term);
 
@@ -100,7 +100,8 @@ async function searchAccounts(term, results) {
     results.insertAdjacentHTML(
       "beforeend",
       `
-      <div class="search-result-item">
+      <div class="search-result-item" style="cursor:pointer"
+           onclick="location.href='profile.html?uid=${encodeURIComponent(u.id)}'">
         <img src="${avatar}" class="search-result-avatar" alt="${esc(uname)}"
              onerror="this.src='assets/img/default-avatar.png'">
         <div class="search-result-info">
@@ -188,6 +189,3 @@ async function searchPosts(term, results) {
     );
   });
 }
-
-/* Optional: direkte Initialisierung bei Seitenaufruf (z. B. wenn URL bereits einen Suchbegriff hätte) */
-// document.addEventListener("DOMContentLoaded", handleSearch);

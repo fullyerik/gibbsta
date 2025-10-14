@@ -8,7 +8,6 @@
   <link rel="stylesheet" href="search-styles.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
 
-  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const SUPABASE_URL = "https://sdmlprsgxgrnzoqvgyqz.supabase.co";
@@ -18,49 +17,18 @@
     function publicUrl(path) { return sb.storage.from('images').getPublicUrl(path).data.publicUrl; }
   </script>
 
-<style>
-  /* Mini-Fallbacks, falls in search-styles.css nicht vorhanden */
-  .search-result-item{display:flex;align-items:center;padding:10px;border-bottom:1px solid #eee}
-  .search-result-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;margin-right:12px}
-  .search-result-info{flex:1;min-width:0}
-  .search-result-username{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .search-result-name{color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .post-preview{width:44px;height:44px;border-radius:4px;margin-right:12px;object-fit:cover}
-  .empty{padding:20px;text-align:center;color:#8e8e8e}
-
-  /* 🔹 Tabs Design */
-  .search-sections {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    border-bottom: 1px solid #e5e7eb;
-    margin-bottom: 10px;
-  }
-
-  .search-tab {
-    background: transparent;
-    border: none;
-    padding: 8px 14px;
-    font-weight: 600;
-    color: #6b7280; /* grau (inaktiv) */
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: color .15s, border-color .15s;
-  }
-
-  .search-tab.active {
-    color: #0095f6;            /* blau */
-    border-bottom-color: #0095f6;
-  }
-
-  .search-tab:not(.active):hover {
-    color: #374151;
-  }
-</style>
-
+  <style>
+    /* kleine Fallbacks zusätzlich zur CSS-Datei */
+    .search-result-item{display:flex;align-items:center;padding:10px;border-bottom:1px solid #eee}
+    .search-result-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;margin-right:12px}
+    .search-result-info{flex:1;min-width:0}
+    .search-result-username{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .search-result-name{color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .post-preview{width:44px;height:44px;border-radius:4px;margin-right:12px;object-fit:cover}
+    .empty{padding:20px;text-align:center;color:#8e8e8e}
+  </style>
 </head>
 <body>
-  <!-- Top Navigation -->
   <nav class="top-nav">
     <div class="nav-left"></div>
     <div class="nav-center">
@@ -72,7 +40,7 @@
   <div class="search-container">
     <div class="search-header">
       <h3>Suchen</h3>
-      <button class="close-search" onclick="goBack()">×</button>
+      <button class="close-search" onclick="history.back()">×</button>
     </div>
 
     <div class="search-input-container">
@@ -82,7 +50,7 @@
 
     <div class="search-sections">
       <button class="search-tab active" onclick="switchSearchTab('accounts')">Accounts</button>
-      <button class="search-tab " onclick="switchSearchTab('posts')">Beiträge</button>
+      <button class="search-tab" onclick="switchSearchTab('posts')">Beiträge</button>
     </div>
 
     <div id="searchResults" class="search-results"></div>
@@ -91,28 +59,25 @@
   <!-- Bottom Navigation -->
   <nav class="bottom-nav">
     <div class="nav-container">
-      <!-- Home -->
       <button class="nav-item" onclick="location.href='home.html'">
         <svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
         </svg>
       </button>
-      <!-- Search -->
       <button class="nav-item" onclick="location.href='search.html'">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="11" cy="11" r="8"/>
           <path d="m21 21-4.35-4.35"/>
         </svg>
       </button>
-      <!-- Plus -->
       <button class="nav-item plus-btn" onclick="location.href='post.html'">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
       </button>
-      <!-- Profile -->
-      <button class="nav-item" onclick="location.href='home.html'">
+      <!-- NEU: Profil unten -->
+      <button class="nav-item" onclick="location.href='homepage.html'">
         <svg viewBox="0 0 24 24" fill="currentColor">
           <circle cx="12" cy="8" r="4"/>
           <path d="M12 14c-4.5 0-8 2.5-8 5v1h16v-1c0-2.5-3.5-5-8-5z"/>
