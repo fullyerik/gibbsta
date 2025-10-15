@@ -1,4 +1,6 @@
-/* Feed + Likes/Kommentare/Speichern + Mitteilungen (Home) */
+/* Home-Feed: Posts + Likes/Kommentare/Speichern + Mitteilungen
+   Änderung: Like-Logik idempotent (kein Doppel-Like möglich).
+*/
 
 let CURRENT_USER = null;
 
@@ -24,45 +26,96 @@ const notif = {
   }
 };
 
+function publicUrl(path){ return sb.storage.from('images').getPublicUrl(path).data.publicUrl; }
+function publicImage(p){ return publicUrl(p.image_path); }
+
 async function getUser(){
   const u = (await sb.auth.getUser()).data.user;
   if(!u){ location.href='index.html'; return null; }
   return u;
 }
 
-async function usernameOf(userId){
-  const { data, error } = await sb.from('profiles').select('username').eq('id', userId).maybeSingle();
-  if(error || !data || !data.username) return userId.slice(0,8);
-  return data.username;
-}
-
-function publicImage(p){ return publicUrl(p.image_path); }
-
 function setNavBadge(){
   if(!CURRENT_USER) return;
   const c = notif.unreadCount(CURRENT_USER.id);
   const el = document.getElementById('navNotifBadge');
+  if(!el) return;
   if(c>0){ el.style.display='flex'; el.textContent = c>99?'99+':c; } else { el.style.display='none'; }
 }
 
-function renderPostCard(p, username, liked, saved, likeCount, comments){
+/* -------- Profilinfos (Username + Avatar) holen (Batch) -------- */
+async function fetchProfilesMap(userIds){
+  if(!userIds || userIds.length===0) return { byId:{}, fallbackAvatar:'https://via.placeholder.com/48/dbdbdb/262626?text=+' };
+
+  const ids = [...new Set(userIds)];
+  const { data: profs } = await sb
+    .from('profiles')
+    .select('id, username, avatar_url, avatar_path')
+    .in('id', ids);
+
+  const map = {};
+  for(const p of (profs||[])){
+    const avatar = p.avatar_url || (p.avatar_path ? publicUrl(p.avatar_path) : '');
+    map[p.id] = {
+      username: p.username || p.id?.slice(0,8) || 'user',
+      avatar: avatar || 'https://via.placeholder.com/48/dbdbdb/262626?text=+'
+    };
+  }
+  return { byId: map, fallbackAvatar: 'https://via.placeholder.com/48/dbdbdb/262626?text=+' };
+}
+
+/* -------- Local Stores (Likes/Saved/Comments/Counts) -------- */
+function getLikeStore(){ return storage.read('likes', CURRENT_USER.id); }
+function setLikeStore(arr){ storage.write('likes', CURRENT_USER.id, arr); }
+function getSaveStore(){ return storage.read('saved', CURRENT_USER.id); }
+function setSaveStore(arr){ storage.write('saved', CURRENT_USER.id, arr); }
+function getComments(postId){ return storage.read('comments', postId); }
+function setComments(postId, arr){ storage.write('comments', postId, arr); }
+function likeCountOf(postId){ return storage.read('like_counts', postId)[0]?.count || 0; }
+function setLikeCount(postId, count){ storage.write('like_counts', postId, [{count}]); }
+function isLiked(postId){ return getLikeStore().some(x=>x.postId===postId); }
+
+/* --- Idempotente Like-Guards --- */
+function ensureLiked(postId){
+  const arr = getLikeStore();
+  if(arr.some(x=>x.postId===postId)) return false; // schon geliked
+  arr.push({ postId, at: Date.now() });
+  setLikeStore(arr);
+  return true;
+}
+function ensureUnliked(postId){
+  const arr = getLikeStore();
+  if(!arr.some(x=>x.postId===postId)) return false; // schon unliked
+  setLikeStore(arr.filter(x=>x.postId!==postId));
+  return true;
+}
+
+/* -------- Rendering -------- */
+function renderPostCard(p, profInfo, liked, saved, likeCount, comments){
+  const username = profInfo?.username || p.user_id.slice(0,8);
+  const avatar   = profInfo?.avatar   || 'https://via.placeholder.com/48/dbdbdb/262626?text=+';
+
   return `
   <article class="post" data-id="${p.id}" data-owner="${p.user_id}">
     <div class="post-header">
-      <img class="user-avatar" src="assets/img/default-avatar.png" alt="${username}">
+      <img class="user-avatar" src="${avatar}" alt="@${username}" onerror="this.src='https://via.placeholder.com/48/dbdbdb/262626?text=+'">
       <div class="username">@${username}</div>
-      <button class="more-options"><i class="fa-solid fa-ellipsis"></i></button>
+      <button class="more-options" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button>
     </div>
+
     <div class="post-image" onclick="openPost('${p.id}')">
       <img src="${publicImage(p)}" alt="">
     </div>
+
     <div class="post-actions">
       <button class="like-btn" title="Like"><i class="${liked?'fa-solid':'fa-regular'} fa-heart"></i></button>
       <button class="comment-btn" title="Kommentieren"><i class="fa-regular fa-comment"></i></button>
       <button class="save-post" title="Speichern"><i class="${saved?'fa-solid':'fa-regular'} fa-bookmark"></i></button>
     </div>
+
     <div class="post-likes"><span class="likes-count">${likeCount}</span> Likes</div>
     <div class="post-caption">${p.caption? p.caption : ''}</div>
+
     <div class="post-comments">
       ${comments.slice(0,2).map(c=>`<div><b>@${c.fromUser}</b> ${c.text}</div>`).join('')}
       <button class="view-comments" onclick="openPost('${p.id}')">Alle Kommentare ansehen</button>
@@ -70,106 +123,140 @@ function renderPostCard(p, username, liked, saved, likeCount, comments){
   </article>`;
 }
 
-function getLikeStore(){ return storage.read('likes', CURRENT_USER.id); }
-function getSaveStore(){ return storage.read('saved', CURRENT_USER.id); }
-function setLikeStore(arr){ storage.write('likes', CURRENT_USER.id, arr); }
-function setSaveStore(arr){ storage.write('saved', CURRENT_USER.id, arr); }
-function getComments(postId){ return storage.read('comments', postId); }
-function setComments(postId, arr){ storage.write('comments', postId, arr); }
-
-function isLiked(postId){ return getLikeStore().some(x=>x.postId===postId); }
-function isSaved(postId){ return getSaveStore().some(x=>x.postId===postId); }
-function likeCountOf(postId){ return storage.read('like_counts', postId)[0]?.count || 0; }
-function setLikeCount(postId, count){ storage.write('like_counts', postId, [{count}]); }
-
+/* -------- Feed laden -------- */
 async function loadFeed(){
   const listEl = document.getElementById('postsContainer');
+  if(!listEl) return;
   listEl.innerHTML = '';
 
-  const { data: posts, error } = await sb.from('posts').select('id,user_id,caption,image_path,created_at').order('created_at', {ascending:false}).limit(50);
-  if(error){ console.error(error); document.getElementById('emptyFeed').style.display='block'; return; }
-  if(!posts || posts.length===0){ document.getElementById('emptyFeed').style.display='block'; return; }
+  const { data: posts, error } = await sb
+    .from('posts')
+    .select('id,user_id,caption,image_path,created_at')
+    .order('created_at', {ascending:false})
+    .limit(50);
 
-  const uids = [...new Set(posts.map(p=>p.user_id))];
-  const { data: profs } = await sb.from('profiles').select('id,username').in('id', uids);
-  const nameMap = Object.fromEntries((profs||[]).map(x=>[x.id, x.username||x.id.slice(0,8)]));
+  if(error || !posts || posts.length===0){
+    document.getElementById('emptyFeed')?.setAttribute('style','display:block');
+    return;
+  }
 
-  posts.forEach(p=>{
-    const liked = isLiked(p.id);
-    const saved = isSaved(p.id);
+  const { byId: profiles, fallbackAvatar } = await fetchProfilesMap(posts.map(p=>p.user_id));
+
+  const frag = document.createDocumentFragment();
+  for(const p of posts){
+    const liked     = isLiked(p.id);
+    const saved     = getSaveStore().some(x=>x.postId===p.id);
     const likeCount = likeCountOf(p.id);
-    const comments = getComments(p.id);
-    const html = renderPostCard(p, nameMap[p.user_id]||p.user_id.slice(0,8), liked, saved, likeCount, comments);
-    listEl.insertAdjacentHTML('beforeend', html);
-  });
+    const comments  = getComments(p.id);
 
-  wireEvents();
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = renderPostCard(p, profiles[p.user_id] || { avatar: fallbackAvatar, username: p.user_id.slice(0,8) }, liked, saved, likeCount, comments);
+    frag.appendChild(wrapper.firstElementChild);
+  }
+  listEl.appendChild(frag);
+
+  wireInteractions();
 }
 
-function openPost(id){ location.href = `post.html?id=${encodeURIComponent(id)}`; }
-
-function wireEvents(){
+/* -------- Interaktionen -------- */
+function wireInteractions(){
   document.querySelectorAll('.post').forEach(card=>{
     const postId = card.dataset.id;
-    const ownerId = card.dataset.owner;
-    const img = card.querySelector('.post-image img')?.src || '';
+    const owner  = card.dataset.owner;
 
+    // Like (idempotent)
     const likeBtn = card.querySelector('.like-btn');
-    const saveBtn = card.querySelector('.save-post');
-    const cmtBtn  = card.querySelector('.comment-btn');
-    const likeCountEl = card.querySelector('.likes-count');
+    likeBtn?.addEventListener('click', ()=>{
+      const icon = likeBtn.querySelector('i');
+      const countEl = card.querySelector('.likes-count');
+      let cnt = likeCountOf(postId);
 
-    likeBtn.onclick = async ()=>{
-      const liked = isLiked(postId);
-      let likes = getLikeStore();
-      let count = likeCountOf(postId);
-
-      const fromUser = (await sb.auth.getUser()).data.user?.user_metadata?.username || 'user';
-      if(!liked){
-        likes.unshift({postId, imageUrl: img});
-        setLikeStore(likes);
-        setLikeCount(postId, count+1);
-        likeBtn.firstElementChild.classList.remove('fa-regular'); likeBtn.firstElementChild.classList.add('fa-solid');
-        likeCountEl.textContent = count+1;
-
-        if(CURRENT_USER.id !== ownerId){
-          notif.push({ownerId, type:'like', fromUser, postId, postImage: img});
-          setNavBadge();
+      if(isLiked(postId)){
+        // un-like nur wenn wirklich liked war
+        if(ensureUnliked(postId)){
+          cnt = Math.max(0, cnt-1);
+          setLikeCount(postId, cnt);
+          if(countEl) countEl.textContent = String(cnt);
+          icon.classList.remove('fa-solid'); icon.classList.add('fa-regular');
         }
       }else{
-        likes = likes.filter(x=>x.postId!==postId);
-        setLikeStore(likes);
-        setLikeCount(postId, Math.max(0,count-1));
-        likeBtn.firstElementChild.classList.add('fa-regular'); likeBtn.firstElementChild.classList.remove('fa-solid');
-        likeCountEl.textContent = Math.max(0,count-1);
-      }
-    };
+        // like nur wenn wirklich neu
+        if(ensureLiked(postId)){
+          cnt = cnt+1;
+          setLikeCount(postId, cnt);
+          if(countEl) countEl.textContent = String(cnt);
+          icon.classList.remove('fa-regular'); icon.classList.add('fa-solid');
 
-    saveBtn.onclick = ()=>{
-      const saved = isSaved(postId);
-      let saves = getSaveStore();
-      if(!saved){
-        saves.unshift({postId, imageUrl: img});
-        setSaveStore(saves);
-        saveBtn.firstElementChild.classList.remove('fa-regular'); saveBtn.firstElementChild.classList.add('fa-solid');
-      }else{
-        saves = saves.filter(x=>x.postId!==postId);
-        setSaveStore(saves);
-        saveBtn.firstElementChild.classList.add('fa-regular'); saveBtn.firstElementChild.classList.remove('fa-solid');
+          // Notification (lokal)
+          notif.push({
+            ownerId: owner,
+            type: 'like',
+            fromUser: (CURRENT_USER?.email?.split('@')[0] || 'user'),
+            postId,
+            postImage: card.querySelector('.post-image img')?.src
+          });
+          setNavBadge();
+        }
       }
-    };
+    });
 
-    cmtBtn.onclick = ()=>openPost(postId);
+    // Save
+    const saveBtn = card.querySelector('.save-post');
+    saveBtn?.addEventListener('click', ()=>{
+      const icon = saveBtn.querySelector('i');
+      let arr = getSaveStore().filter(x=>x.postId!==postId);
+      const already = getSaveStore().some(x=>x.postId===postId);
+      if(!already){ arr = [...getSaveStore(), {postId, at:Date.now()}]; }
+      setSaveStore(arr);
+      icon.classList.toggle('fa-solid', !already);
+      icon.classList.toggle('fa-regular', already);
+    });
+
+    // Kommentar
+    const commentBtn = card.querySelector('.comment-btn');
+    commentBtn?.addEventListener('click', ()=> openPost(postId));
+
+    // Mehr
+    const moreBtn = card.querySelector('.more-options');
+    moreBtn?.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const menu = document.createElement('div');
+      menu.style.position='absolute';
+      menu.style.right='12px';
+      menu.style.top = (moreBtn.getBoundingClientRect().bottom + window.scrollY + 8)+'px';
+      menu.style.background='#fff';
+      menu.style.border='1px solid #dbdbdb';
+      menu.style.borderRadius='8px';
+      menu.style.boxShadow='0 6px 20px rgba(0,0,0,.12)';
+      menu.style.padding='8px';
+      menu.innerHTML = `
+        <button class="menu-item" onclick="openProfile('${owner}')">Zum Profil</button>
+        <button class="menu-item" onclick="alert('Danke für deine Meldung. Unser Team prüft den Beitrag.')">Melden</button>
+      `;
+      document.body.appendChild(menu);
+      const close = ()=>{ menu.remove(); document.removeEventListener('click', close); };
+      setTimeout(()=>document.addEventListener('click', close), 0);
+    });
   });
 }
 
-document.getElementById('logoutBtn')?.addEventListener('click', async ()=>{
-  await sb.auth.signOut(); location.href='index.html';
-});
+/* -------- Navigation -------- */
+function openPost(id){ location.href = `post.html?id=${encodeURIComponent(id)}`; }
+function openProfile(uid){ location.href = `homepage.html?uid=${encodeURIComponent(uid)}`; }
 
-(async function init(){
+/* -------- Init -------- */
+document.addEventListener('DOMContentLoaded', async ()=>{
   CURRENT_USER = await getUser();
   if(!CURRENT_USER) return;
+
   setNavBadge();
   await loadFeed();
-})();
+
+  document.getElementById('foryouBtn')?.addEventListener('click', ()=>location.href='home.html');
+  document.getElementById('followingBtn')?.addEventListener('click', ()=>location.href='following.html');
+
+  document.getElementById('logoutBtn')?.addEventListener('click', async ()=>{
+    await sb.auth.signOut();
+    location.href='index.html';
+  });
+});
