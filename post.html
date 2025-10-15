@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gibbsta – Beitrag</title>
+  <link rel="stylesheet" href="post-styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL="https://sdmlprsgxgrnzoqvgyqz.supabase.co";
+    const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbWxwcnNneGdybnpvcXZneXF6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDMyMDk4NiwiZXhwIjoyMDc1ODk2OTg2fQ.rWp3zL2V37X76_PdQAq-pw4uSzpOIyeQ9l3bjEC7tCM";
+    window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    function publicUrl(path){return sb.storage.from('images').getPublicUrl(path).data.publicUrl;}
+  </script>
+  <style>
+    /* Mini Styles nur für die Upload-UI */
+    .uploader{display:flex;flex-direction:column;gap:12px}
+    .uploader .drop{border:2px dashed #dbdbdb;border-radius:12px;padding:18px;text-align:center;cursor:pointer;background:#fff}
+    .uploader input[type=file]{display:none}
+    .uploader .actions{display:flex;gap:10px}
+    .hidden{display:none!important}
+  </style>
+</head>
+<body>
+  <header class="top-nav">
+    <img class="nav-logo" src="https://i.ibb.co/Q7mG5wr3/Gibbsta-Logo-Haupt.png" alt="Gibbsta">
+  </header>
+
+  <main class="content">
+    <div class="post-container" id="postBox">
+      <!-- Upload-UI -->
+      <section id="uploadUI" class="uploader hidden">
+        <h2>Neuen Beitrag erstellen</h2>
+        <label class="drop" id="dropZone">
+          <input id="fileInput" type="file" accept="image/*">
+          <div><i class="fa-regular fa-image"></i> Bild auswählen oder hierher ziehen</div>
+        </label>
+        <div class="image-preview" id="imgWrap">
+          <img id="previewImg" src="" alt="Vorschau" style="display:none"/>
+        </div>
+
+        <div class="caption-section">
+          <textarea id="newCaption" placeholder="Beschreibe dein Bild…"></textarea>
+          <div class="caption-tools">
+            <button id="emojiButton">😊</button>
+            <span id="charCount">0/2200</span>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="post-button" id="publishBtn" disabled>Posten</button>
+          <button class="cancel-button" onclick="location.href='home.html'">Abbrechen</button>
+        </div>
+        <p id="uploadMsg" style="color:#8e8e8e"></p>
+      </section>
+
+      <!-- Viewer-UI -->
+      <section id="viewerUI" class="hidden">
+        <h2 id="postUser">@user</h2>
+        <div class="image-preview" id="viewerImgWrap">
+          <img id="postImg" src="" alt="Post" style="display:none"/>
+        </div>
+
+        <div class="caption-section">
+          <textarea id="caption" placeholder="Beschreibe dein Bild…"></textarea>
+          <div class="caption-tools">
+            <button id="emojiButtonView">😊</button>
+            <span id="charCountView">0/2200</span>
+          </div>
+        </div>
+
+        <div class="post-options">
+          <button class="post-button" id="saveCaptionBtn">Speichern</button>
+          <button class="cancel-button" onclick="history.back()">Zurück</button>
+        </div>
+
+        <hr style="margin:20px 0"/>
+
+        <div class="post-actions" style="display:flex;gap:12px;align-items:center">
+          <button id="likeBtn" title="Like"><i class="fa-regular fa-heart"></i></button>
+          <button id="saveBtn" title="Speichern"><i class="fa-regular fa-bookmark"></i></button>
+          <span><b id="likesCount">0</b> Likes</span>
+        </div>
+
+        <div style="margin-top:12px">
+          <div id="commentsList" style="display:flex;flex-direction:column;gap:8px"></div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <input id="commentInput" placeholder="Kommentar hinzufügen…" style="flex:1;padding:10px;border:1px solid #dbdbdb;border-radius:6px"/>
+            <button id="commentSend" class="post-button" style="width:auto">Posten</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Bottom-Navigation -->
+  <nav class="bottom-nav">
+    <div class="nav-container">
+      <button class="nav-item" onclick="location.href='home.html'">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      </button>
+      <button class="nav-item" onclick="location.href='search.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </button>
+      <button class="nav-item plus-btn active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <!-- NEU: Profil unten -->
+      <button class="nav-item" onclick="location.href='homepage.html'">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="12" cy="8" r="4"></circle>
+          <path d="M12 14c-4.5 0-8 2.5-8 5v1h16v-1c0-2.5-3.5-5-8-5z"></path>
+        </svg>
+      </button>
+    </div>
+  </nav>
+
+  <script src="post-script.js"></script>
+</body>
+</html>

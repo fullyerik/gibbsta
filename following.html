@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Folge ich – GIBBSTA</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:#fafafa;color:#262626;min-height:100vh;display:flex;flex-direction:column}
+    .header{background:#fff;border-bottom:1px solid #dbdbdb;padding:16px 0;position:sticky;top:0;z-index:10;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+    .nav{max-width:935px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;padding:0 20px}
+    .back-btn{background:transparent;border:none;cursor:pointer;padding:8px;border-radius:50%}
+    .back-btn:hover{background:#f5f5f5}
+    .back-btn svg{width:24px;height:24px}
+    .page-title{font-size:20px;font-weight:600}
+    .spacer{width:40px}
+    .main{flex:1;max-width:935px;margin:0 auto;padding:20px;width:100%}
+    .search-card{background:#fff;border-radius:12px;padding:24px;margin-bottom:24px;box-shadow:0 1px 3px rgba(0,0,0,.1);border:1px solid #dbdbdb}
+    .search-wrap{position:relative;max-width:500px;margin:0 auto}
+    .search-input{width:100%;padding:14px 20px 14px 50px;border:1px solid #dbdbdb;border-radius:25px;background:#fafafa;font-size:14px}
+    .search-input:focus{outline:none;border-color:#0095f6;background:#fff;box-shadow:0 0 10px rgba(0,149,246,.1)}
+    .search-icon{position:absolute;left:18px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:#8e8e8e}
+    .card{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.1);border:1px solid #dbdbdb;overflow:hidden}
+    .card-h{padding:20px 24px;border-bottom:1px solid #dbdbdb;background:#fafafa}
+    .title{font-size:16px;font-weight:600;margin-bottom:4px}
+    .count{font-size:14px;color:#8e8e8e}
+    .list{padding:0}
+    .row{display:flex;align-items:center;padding:16px 24px;border-bottom:1px solid #efefef;gap:14px;cursor:pointer}
+    .row:last-child{border-bottom:none}
+    .row:hover{background:#fafafa}
+    .ava{width:50px;height:50px;border-radius:50%;object-fit:cover;border:2px solid #dbdbdb;flex-shrink:0}
+    .info{flex:1;min-width:0}
+    .uname{font-size:15px;font-weight:600}
+    .dname{font-size:14px;color:#8e8e8e}
+    .btn{border:none;border-radius:6px;padding:8px 14px;font-weight:600;cursor:pointer;transition:.2s min-width 90px}
+    .btn-plain{background:transparent;border:1px solid #dbdbdb}
+    .btn-plain:hover{background:#f5f5f5}
+    .empty,.nores{text-align:center;padding:60px 24px;color:#8e8e8e}
+    .empty svg{width:80px;height:80px;margin:0 auto 20px;opacity:.5}
+    @media (max-width:768px){.main{padding:16px} .row{padding:12px 16px} .card-h{padding:16px 20px}}
+  </style>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL="https://sdmlprsgxgrnzoqvgyqz.supabase.co";
+    const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbWxwcnNneGdybnpvcXZneXF6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDMyMDk4NiwiZXhwIjoyMDc1ODk2OTg2fQ.rWp3zL2V37X76_PdQAq-pw4uSzpOIyeQ9l3bjEC7tCM";
+    window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  </script>
+</head>
+<body>
+  <header class="header">
+    <nav class="nav">
+      <button class="back-btn" onclick="location.href='home.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <h1 class="page-title">Folge ich</h1>
+      <div class="spacer"></div>
+    </nav>
+  </header>
+
+  <main class="main">
+    <section class="search-card">
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="q" type="text" class="search-input" placeholder="Suche in den Personen, denen du folgst…">
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-h">
+        <div class="title">Folge ich</div>
+        <div class="count" id="cnt">0 Personen</div>
+      </div>
+      <div class="list" id="list">
+        <div class="empty" id="empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          <h3 style="font-size:18px;font-weight:600;color:#262626;margin-bottom:8px">Du folgst noch niemandem</h3>
+          <p style="max-width:320px;margin:0 auto">Wenn du anderen Personen folgst, werden sie hier angezeigt.</p>
+        </div>
+        <div class="nores" id="nores" style="display:none">
+          <h3 style="font-size:18px;font-weight:600;color:#262626;margin-bottom:8px">Keine Ergebnisse</h3>
+          <p>Versuche einen anderen Suchbegriff.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    let CU = null;
+    let following = [];       // [{id, username, displayName, avatar}]
+    let filtered = [];
+
+    const LS = {
+      key(uid){ return `following_${uid}`; },
+      read(uid){ try{return JSON.parse(localStorage.getItem(this.key(uid))||'[]');}catch{return[];} },
+      write(uid,arr){ localStorage.setItem(this.key(uid), JSON.stringify(arr)); }
+    };
+
+    const el = s => document.querySelector(s);
+    const listEl = el('#list'), emptyEl = el('#empty'), noresEl = el('#nores'), cntEl = el('#cnt');
+
+    el('#q').addEventListener('input', () => {
+      const t = el('#q').value.trim().toLowerCase();
+      filtered = !t ? following : following.filter(u =>
+        u.username.toLowerCase().includes(t) || (u.displayName||'').toLowerCase().includes(t)
+      );
+      render();
+    });
+
+    function render(){
+      // remove existing rows
+      listEl.querySelectorAll('.row').forEach(r => r.remove());
+
+      const t = el('#q').value.trim();
+      const arr = filtered;
+
+      // states
+      emptyEl.style.display = following.length ? 'none' : 'block';
+      noresEl.style.display = (following.length && t && arr.length===0) ? 'block' : 'none';
+
+      // rows
+      arr.forEach(u=>{
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.innerHTML = `
+          <img class="ava" src="${u.avatar || 'assets/img/default-avatar.png'}" alt="${u.username}">
+          <div class="info">
+            <div class="uname">@${u.username}</div>
+            <div class="dname">${u.displayName || ''}</div>
+          </div>
+          <button class="btn btn-plain" title="Entfolgen">Entfolgen</button>
+        `;
+        // Klick auf Row -> (optional) Profil öffnen
+        row.addEventListener('click', (e)=>{ if(e.target.tagName.toLowerCase()==='button') return; window.location.href='homepage.html'; });
+        // Entfolgen
+        row.querySelector('button').addEventListener('click', (e)=>{ e.stopPropagation(); unfollow(u.id); });
+        listEl.insertBefore(row, emptyEl);
+      });
+
+      // count
+      const c = following.length;
+      cntEl.textContent = c === 1 ? '1 Person' : `${c} Personen`;
+    }
+
+    async function loadFollowingFromSupabase(uid){
+      try{
+        // 1) Beziehungen holen
+        const { data: rels, error: e1 } = await sb
+          .from('follows')
+          .select('following_id')
+          .eq('follower_id', uid);
+
+        if(e1) throw e1;
+
+        const ids = (rels||[]).map(r=>r.following_id);
+        if(ids.length === 0) return [];
+
+        // 2) Profile der Gefolgten holen
+        const { data: profs, error: e2 } = await sb
+          .from('profiles')
+          .select('id, username, display_name, avatar_url')
+          .in('id', ids);
+
+        if(e2) throw e2;
+
+        return (profs||[]).map(p=>({
+          id: p.id,
+          username: p.username || p.id.slice(0,8),
+          displayName: p.display_name || '',
+          avatar: p.avatar_url || 'assets/img/default-avatar.png'
+        }));
+      }catch(err){
+        // Fallback auf LocalStorage
+        console.warn('Follows DB nicht verfügbar – nutze localStorage', err);
+        return LS.read(uid);
+      }
+    }
+
+    async function unfollow(userId){
+      // Versuch Supabase… bei Fehler LocalStorage
+      try{
+        const { error } = await sb.from('follows')
+          .delete()
+          .eq('follower_id', CU.id)
+          .eq('following_id', userId);
+        if(error) throw error;
+      }catch{
+        // Fallback: LS
+        LS.write(CU.id, LS.read(CU.id).filter(u=>u.id!==userId));
+      }
+      following = following.filter(u=>u.id!==userId);
+      filtered = filtered.filter(u=>u.id!==userId);
+      render();
+    }
+
+    (async function init(){
+      const { data: { user } } = await sb.auth.getUser();
+      if(!user){ window.location.href='index.html'; return; }
+      CU = user;
+
+      following = await loadFollowingFromSupabase(CU.id);
+      filtered = following;
+      render();
+    })();
+  </script>
+</body>
+</html>

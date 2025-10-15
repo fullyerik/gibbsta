@@ -55,83 +55,65 @@ function checkAge() {
     parentalConsentGroup.style.display = age === '13-17' ? 'flex' : 'none';
 }
 
-// Erweitere die Register-Funktion
-function register() {
-    const username = document.getElementById('regUser').value;
-    const email = document.getElementById('regEmail').value;
-    const password = document.getElementById('regPass').value;
-    const messageElement = document.getElementById('message');
+async function register() {
+  const username = document.getElementById('regUser').value.trim();
+  const email    = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPass').value;
+  const msg = document.getElementById('message');
 
-    // Validate username
-    if (!username) {
-        messageElement.textContent = 'Fehler: Bitte geben Sie einen Benutzernamen ein!';
-        messageElement.className = 'error';
-        return;
+  try {
+    // 1) Username-Verfügbarkeit prüfen
+    const { data: existingUser, error: nameErr } = await sb
+      .from('profiles')
+      .select('id')
+      .eq('username', username)
+      .range(0, 0); // exakt 1 Zeile statt maybeSingle()
+
+    if (nameErr) throw nameErr;
+    if (existingUser && existingUser[0]) {
+      msg.textContent = 'Benutzername ist bereits vergeben. Bitte wähle einen anderen.';
+      msg.className = 'error';
+      return;
     }
 
-    // Validate email
-    if (!email || !validateEmail(email)) {
-        messageElement.textContent = 'Fehler: Bitte geben Sie eine gültige E-Mail-Adresse ein!';
-        messageElement.className = 'error';
+    // 2) SignUp
+    const { data, error } = await sb.auth.signUp({
+      email, password, options: { data: { username } }
+    });
+    if (error) {
+      if (error.message?.toLowerCase().includes('already registered')) {
+        msg.textContent = 'Diese E-Mail ist bereits registriert. Bitte logge dich ein.';
+        msg.className = 'error';
         return;
+      }
+      throw error;
     }
 
-    // Validate password
-    const passwordErrors = validatePassword(password);
-    if (passwordErrors.length > 0) {
-        messageElement.textContent = 'Passwort muss enthalten: ' + passwordErrors.join(', ');
-        messageElement.className = 'error';
-        return;
-    }
+    const user = data.user;
+    if (!user) throw new Error('Registrierung fehlgeschlagen.');
 
-    // Überprüfe AGBs und Datenschutz
-    if (!document.getElementById('agbCheckbox').checked) {
-        messageElement.textContent = 'Bitte akzeptiere die AGB.';
-        messageElement.className = 'error';
-        return;
-    }
+    // 3) Profil anlegen/aktualisieren
+    const { error: pErr } = await sb
+      .from('profiles')
+      .upsert(
+        { id: user.id, username, display_name: username, email },
+        { onConflict: 'id' }
+      );
+    if (pErr) throw pErr;
 
-    if (!document.getElementById('privacyCheckbox').checked) {
-        messageElement.textContent = 'Bitte akzeptiere die Datenschutzerklärung.';
-        messageElement.className = 'error';
-        return;
-    }
-
-    if (!document.getElementById('ageConfirmCheckbox').checked) {
-        messageElement.textContent = 'Bitte bestätige dein Alter.';
-        messageElement.className = 'error';
-        return;
-    }
-
-    const age = document.getElementById('userAge').value;
-    if (!age) {
-        messageElement.textContent = 'Bitte wähle dein Alter aus.';
-        messageElement.className = 'error';
-        return;
-    }
-
-    if (age === '13-17' && !document.getElementById('parentalConsentCheckbox').checked) {
-        messageElement.textContent = 'Bitte bestätige die Zustimmung deiner Erziehungsberechtigten.';
-        messageElement.className = 'error';
-        return;
-    }
-
-    // Store user data (temporary until database is implemented)
-    const userData = {
-        username: username,
-        email: email,
-        password: password
-    };
-    
-    localStorage.setItem(username, JSON.stringify(userData));
-    messageElement.textContent = 'Registrierung erfolgreich! Bitte melden Sie sich jetzt an.';
-    messageElement.className = 'success';
-    
-    // Switch to login after 2 seconds
+    // 4) Success
+    msg.textContent = 'Registrierung erfolgreich! Bitte ggf. E-Mail bestätigen und anmelden.';
+    msg.className = 'success';
     setTimeout(() => {
-        toggleForms();
-        document.getElementById('logUser').value = username;
-    }, 2000);
+      toggleForms();
+      document.getElementById('logUser').value = email;
+    }, 1200);
+
+  } catch (e) {
+    console.error('SignUp error:', e);
+    msg.textContent = 'Fehler: ' + (e?.message || e);
+    msg.className = 'error';
+  }
 }
 
 // Beispiel für verschiedene Rollen/Rechte
@@ -206,63 +188,85 @@ function findUserByEmailOrUsername(identifier) {
     return null;
 }
 
-// Erweitere die bestehende Login-Funktion
-function login() {
-    const identifier = document.getElementById('logUser').value;
-    const password = document.getElementById('logPass').value;
-    const messageElement = document.getElementById('message');
+async function login() {
+  const identifier = document.getElementById('logUser').value.trim(); // E-Mail ODER Benutzername
+  const password   = document.getElementById('logPass').value;
+  const msg = document.getElementById('message');
 
-    if (!identifier || !password) {
-        messageElement.textContent = 'Fehler: Bitte füllen Sie alle Felder aus!';
-        messageElement.className = 'error';
+  if (!identifier || !password) {
+    msg.textContent = 'Bitte E-Mail/Benutzername und Passwort eingeben.';
+    msg.className = 'error';
+    return;
+  }
+
+  try {
+    let emailForLogin = identifier;
+
+    // Wenn kein '@' drin ist → als Benutzername behandeln → erste passende E-Mail holen
+    if (!identifier.includes('@')) {
+      const { data: rows, error: lookupErr } = await sb
+        .from('profiles')
+        .select('email')
+        .ilike('username', identifier)
+        .range(0, 0); // exakt 1 Zeile
+
+      if (lookupErr) throw lookupErr;
+      const row = rows && rows[0];
+      if (!row || !row.email) {
+        msg.textContent = 'Benutzername nicht gefunden. Bitte E-Mail verwenden oder zuerst mit E-Mail einloggen.';
+        msg.className = 'error';
         return;
+      }
+      emailForLogin = row.email;
     }
 
-    // Suche Benutzer anhand von E-Mail oder Benutzername
-    const user = findUserByEmailOrUsername(identifier);
-
-    if (!user) {
-        messageElement.textContent = 'Fehler: Benutzername/E-Mail oder Passwort falsch!';
-        messageElement.className = 'error';
-        return;
+    // Normales E-Mail+Passwort-Login
+    const { data, error } = await sb.auth.signInWithPassword({ email: emailForLogin, password });
+    if (error) {
+      if (/email not confirmed/i.test(error.message)) {
+        msg.textContent = 'Bitte bestätige zuerst deine E-Mail.';
+      } else if (/invalid login credentials/i.test(error.message)) {
+        msg.textContent = 'E-Mail/Benutzername oder Passwort ist falsch.';
+      } else {
+        msg.textContent = 'Login fehlgeschlagen: ' + error.message;
+      }
+      msg.className = 'error';
+      return;
     }
 
-    // Überprüfe das Passwort
-    if (user.password !== password) {
-        messageElement.textContent = 'Fehler: Benutzername/E-Mail oder Passwort falsch!';
-        messageElement.className = 'error';
-        return;
-    }
+    const user = data.user;
 
-    // Setze die Rolle
-    const userData = { ...user };
-    if (ADMIN_USERS[user.username]) {
-        userData.role = ADMIN_USERS[user.username].role;
-    } else {
-        userData.role = ROLES.USER;
-    }
+    // Email ins Profil nachtragen (id sollte UNIQUE sein; Upsert ist idempotent)
+    await sb.from('profiles').upsert(
+      { id: user.id, email: user.email },
+      { onConflict: 'id' }
+    );
 
-    // Speichere die User-Daten in der Session
-    sessionStorage.setItem('currentUser', JSON.stringify(userData));
-    
-    // Weiterleitung zur Home-Seite
+    // Profil lesen → nur die erste Zeile nehmen (kein .single()!)
+    const { data: profRows, error: pErr } = await sb
+      .from('profiles')
+      .select('role, username')
+      .eq('id', user.id)
+      .range(0, 0);
+
+    if (pErr) throw pErr;
+
+    const prof = (profRows && profRows[0]) || null;
+
+    sessionStorage.setItem('currentUser', JSON.stringify({
+      id: user.id,
+      email: user.email,
+      username: prof?.username || '',
+      role: prof?.role || 'user'
+    }));
+
     window.location.href = 'home.html';
-}
-
-// Beispiel für Verwendung der Berechtigungen
-function checkUserPermissions() {
-    const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
-    
-    // Beispiele für Berechtigungsprüfungen
-    if (hasPermission(currentUser, 'delete_posts')) {
-        // Zeige Delete-Button an
-        showDeleteButtons();
-    }
-    
-    if (hasPermission(currentUser, 'ban_users')) {
-        // Zeige Ban-Option an
-        showBanOptions();
-    }
+  } catch (e) {
+    console.error(e);
+    // Fängt auch den „Cannot coerce…“-Fall ab
+    document.getElementById('message').textContent = 'Login fehlgeschlagen: ' + (e.message || e);
+    document.getElementById('message').className = 'error';
+  }
 }
 
 document.getElementById('regPass').addEventListener('input', function(e) {

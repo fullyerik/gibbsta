@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gibbsta – Posteingang</title>
+  <link rel="stylesheet" href="home-styles.css">
+  <style>
+    .wrap{max-width:700px;margin:80px auto 90px;padding:0 16px}
+    .item{display:flex;gap:12px;padding:12px;border:1px solid #dbdbdb;background:#fff;border-radius:10px;margin-bottom:10px;align-items:center;cursor:pointer}
+    .item img{width:56px;height:56px;object-fit:cover;border-radius:8px}
+    .meta{display:flex;flex-direction:column;gap:4px}
+    .time{color:#8e8e8e;font-size:12px}
+    .empty{text-align:center;color:#8e8e8e;margin-top:30px}
+    .controls{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .mark{background:#0095f6;color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL="https://sdmlprsgxgrnzoqvgyqz.supabase.co";
+    const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbWxwcnNneGdybnpvcXZneXF6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDMyMDk4NiwiZXhwIjoyMDc1ODk2OTg2fQ.rWp3zL2V37X76_PdQAq-pw4uSzpOIyeQ9l3bjEC7tCM";
+    window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  </script>
+</head>
+<body>
+  <header class="top-nav">
+    <img class="nav-logo" src="https://i.ibb.co/Q7mG5wr3/Gibbsta-Logo-Haupt.png" alt="Gibbsta">
+  </header>
+
+  <main class="wrap">
+    <div class="controls">
+      <h2>Posteingang</h2>
+      <button class="mark" id="markAll">Alle als gelesen</button>
+    </div>
+    <div id="list"></div>
+    <p class="empty" id="empty" style="display:none">Keine Mitteilungen</p>
+  </main>
+
+  <nav class="bottom-nav">
+    <div class="nav-container">
+      <button class="nav-item" onclick="location.href='home.html'">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      </button>
+      <button class="nav-item" onclick="location.href='search.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </button>
+      <button class="nav-item plus-btn" onclick="location.href='post.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <!-- NEU: Profil unten -->
+      <button class="nav-item" onclick="location.href='homepage.html'">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="12" cy="8" r="4"></circle>
+          <path d="M12 14c-4.5 0-8 2.5-8 5v1h16v-1c0-2.5-3.5-5-8-5z"></path>
+        </svg>
+      </button>
+    </div>
+  </nav>
+
+  <script>
+    let U=null;
+    const storage={key(s,id){return `${s}_${id}`},read(s,id){try{return JSON.parse(localStorage.getItem(this.key(s,id))||'[]')}catch{return[]}},write(s,id,v){localStorage.setItem(this.key(s,id),JSON.stringify(v))}};
+    function timeAgo(ts){const d=(Date.now()-new Date(ts))/60000;if(d<1)return"gerade eben";if(d<60)return Math.floor(d)+"m";if(d<1440)return Math.floor(d/60)+"h";return Math.floor(d/1440)+"d";}
+    function render(){
+      const listEl=document.getElementById('list'); listEl.innerHTML='';
+      const items=storage.read('notifications', U.id);
+      document.getElementById('empty').style.display = items.length?'none':'block';
+      items.forEach(n=>{
+        const text = n.type==='like'
+          ? `@${n.fromUser} hat deinen Post geliked`
+          : `@${n.fromUser} hat kommentiert: ${n.comment}`;
+        listEl.insertAdjacentHTML('beforeend',`
+          <div class="item" data-id="${n.id}" onclick="openPost('${n.postId}')">
+            <img src="${n.postImage}" alt="">
+            <div class="meta">
+              <div>${text}</div>
+              <div class="time">${timeAgo(n.timestamp)}</div>
+            </div>
+          </div>
+        `);
+      });
+    }
+    function openPost(id){ location.href='post.html?id='+encodeURIComponent(id); }
+    document.getElementById('markAll').onclick=()=>{
+      const items=storage.read('notifications', U.id).map(x=>({...x,read:true}));
+      storage.write('notifications', U.id, items); render();
+    };
+    (async function(){ U=(await sb.auth.getUser()).data.user; if(!U){location.href='index.html';return;} render(); })();
+  </script>
+</body>
+</html>
