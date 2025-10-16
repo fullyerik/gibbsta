@@ -10,19 +10,51 @@ const storage = {
   write(scope,id,arr){ localStorage.setItem(this.key(scope,id), JSON.stringify(arr)); }
 };
 
+/* --- Notifications über Supabase --- */
 const notif = {
-  push({ownerId,type,fromUser,postId,postImage,comment}) {
-    const list = storage.read('notifications', ownerId);
-    list.unshift({
-      id: `${Date.now()}_${Math.random().toString(36).slice(2,8)}`,
-      type, fromUser, postId, postImage, comment: comment||'',
-      timestamp: new Date().toISOString(),
-      read: false
+  async push({ownerId, type, fromUserId, postId, comment}) {
+    if(!ownerId || !fromUserId) return;
+    const { error } = await sb.from('notifications').insert({
+      owner_id: ownerId,
+      from_user_id: fromUserId,
+      type,
+      post_id: postId || null,
+      comment: comment || null
     });
-    storage.write('notifications', ownerId, list);
+    if(error) console.error('notif.push', error);
   },
-  unreadCount(uid){
-    return storage.read('notifications', uid).filter(n=>!n.read).length;
+
+  async listForUser(uid){
+    const { data, error } = await sb
+      .from('notifications')
+      .select('id, owner_id, from_user_id, type, post_id, comment, read, created_at')
+      .eq('owner_id', uid)
+      .order('created_at', { ascending:false });
+    if(error){ console.error(error); return []; }
+    return data;
+  },
+
+  async markAllRead(uid){
+    const { error } = await sb.from('notifications')
+      .update({ read: true })
+      .eq('owner_id', uid);
+    if(error) console.error(error);
+  },
+
+  async clearAll(uid){
+    const { error } = await sb.from('notifications')
+      .delete()
+      .eq('owner_id', uid);
+    if(error) console.error(error);
+  },
+
+  async unreadCount(uid){
+    const { count, error } = await sb
+      .from('notifications')
+      .select('*', { count:'exact', head:true })
+      .eq('owner_id', uid)
+      .eq('read', false);
+    return error ? 0 : (count || 0);
   }
 };
 
@@ -35,12 +67,13 @@ async function getUser(){
   return u;
 }
 
-function setNavBadge(){
+/* FIX: async + await (vorher Promise → Badge blieb 0) */
+async function setNavBadge(){
   if(!CURRENT_USER) return;
-  const c = notif.unreadCount(CURRENT_USER.id);
+  const c = await notif.unreadCount(CURRENT_USER.id);
   const el = document.getElementById('navNotifBadge');
   if(!el) return;
-  if(c>0){ el.style.display='flex'; el.textContent = c>99?'99+':c; } else { el.style.display='none'; }
+  if(c>0){ el.style.display='flex'; el.textContent = c>99?'99+':String(c); } else { el.style.display='none'; }
 }
 
 /* -------- Profilinfos (Username + Avatar) holen (Batch) -------- */
@@ -99,7 +132,7 @@ function renderPostCard(p, profInfo, liked, saved, likeCount, comments){
   <article class="post" data-id="${p.id}" data-owner="${p.user_id}">
     <div class="post-header">
       <img class="user-avatar" src="${avatar}" alt="@${username}" onerror="this.src='https://via.placeholder.com/48/dbdbdb/262626?text=+'">
-      <div class="username">@${username}</div>
+      <div class="username" onclick="location.href='homepage.html?uid=${encodeURIComponent(p.user_id)}'">@${username}</div>
       <button class="more-options" title="Mehr"><i class="fa-solid fa-ellipsis"></i></button>
     </div>
 
@@ -166,13 +199,12 @@ function wireInteractions(){
 
     // Like (idempotent)
     const likeBtn = card.querySelector('.like-btn');
-    likeBtn?.addEventListener('click', ()=>{
+    likeBtn?.addEventListener('click', async ()=>{
       const icon = likeBtn.querySelector('i');
       const countEl = card.querySelector('.likes-count');
       let cnt = likeCountOf(postId);
 
       if(isLiked(postId)){
-        // un-like nur wenn wirklich liked war
         if(ensureUnliked(postId)){
           cnt = Math.max(0, cnt-1);
           setLikeCount(postId, cnt);
@@ -180,27 +212,27 @@ function wireInteractions(){
           icon.classList.remove('fa-solid'); icon.classList.add('fa-regular');
         }
       }else{
-        // like nur wenn wirklich neu
         if(ensureLiked(postId)){
           cnt = cnt+1;
           setLikeCount(postId, cnt);
           if(countEl) countEl.textContent = String(cnt);
           icon.classList.remove('fa-regular'); icon.classList.add('fa-solid');
 
-          // Notification (lokal)
-          notif.push({
-            ownerId: owner,
-            type: 'like',
-            fromUser: (CURRENT_USER?.email?.split('@')[0] || 'user'),
-            postId,
-            postImage: card.querySelector('.post-image img')?.src
-          });
-          setNavBadge();
+          // DB-Mitteilung (falls nicht eigener Post)
+          if (CURRENT_USER?.id && CURRENT_USER.id !== owner) {
+            await notif.push({
+              ownerId: owner,
+              type: 'like',
+              fromUserId: CURRENT_USER.id,
+              postId
+            });
+            await setNavBadge();
+          }
         }
       }
     });
 
-    // Save
+    // Speichern
     const saveBtn = card.querySelector('.save-post');
     saveBtn?.addEventListener('click', ()=>{
       const icon = saveBtn.querySelector('i');
@@ -212,11 +244,11 @@ function wireInteractions(){
       icon.classList.toggle('fa-regular', already);
     });
 
-    // Kommentar
+    // Kommentare
     const commentBtn = card.querySelector('.comment-btn');
     commentBtn?.addEventListener('click', ()=> openPost(postId));
 
-    // Mehr
+    // Mehr-Menü
     const moreBtn = card.querySelector('.more-options');
     moreBtn?.addEventListener('click', (e)=>{
       e.stopPropagation();
@@ -249,8 +281,8 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   CURRENT_USER = await getUser();
   if(!CURRENT_USER) return;
 
-  setNavBadge();
-  await loadFeed();
+  await setNavBadge();     // Badge initial (await!)
+  await loadFeed();        // Feed laden
 
   document.getElementById('foryouBtn')?.addEventListener('click', ()=>location.href='home.html');
   document.getElementById('followingBtn')?.addEventListener('click', ()=>location.href='following.html');
