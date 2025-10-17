@@ -144,6 +144,7 @@ async function loadPostView(currentUserId, pid){
     renderComments(post.id);
   };
 
+
   function getViewerName(){
     try{
       const cu = JSON.parse(sessionStorage.getItem('currentUser')||'{}');
