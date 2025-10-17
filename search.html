@@ -1,61 +1,147 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gibbsta - Suche</title>
-    <link rel="stylesheet" href="search-styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GIBBSTA – Suche</title>
+
+  <link rel="stylesheet" href="home-styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL="https://sdmlprsgxgrnzoqvgyqz.supabase.co";
+    const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbWxwcnNneGdybnpvcXZneXF6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDMyMDk4NiwiZXhwIjoyMDc1ODk2OTg2fQ.rWp3zL2V37X76_PdQAq-pw4uSzpOIyeQ9l3bjEC7tCM";
+    window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    function publicUrl(path){ return sb.storage.from('images').getPublicUrl(path).data.publicUrl; }
+  </script>
+
+  <style>
+    body{background:#fafafa}
+    .header{position:fixed;top:0;left:0;right:0;z-index:10;background:#fff;border-bottom:1px solid #dbdbdb}
+    .nav{height:60px;display:flex;align-items:center;justify-content:center}
+    .nav img{height:38px}
+    .wrap{max-width:760px;margin:80px auto 110px;padding:0 16px}
+    .search-card{background:#fff;border:1px solid #dbdbdb;border-radius:12px;padding:12px}
+    .search-row{display:flex;gap:10px;align-items:center}
+    .search-row input{flex:1;border:1px solid #dbdbdb;border-radius:10px;padding:10px 12px}
+    .search-row button{border:none;background:#0095f6;color:#fff;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:700}
+    .list{margin-top:14px;display:flex;flex-direction:column;gap:10px}
+    .card{background:#fff;border:1px solid #dbdbdb;border-radius:12px;padding:10px;display:flex;align-items:center;gap:12px;cursor:pointer}
+    .ava{width:48px;height:48px;border-radius:50%;object-fit:cover;border:1px solid #ddd}
+    .meta{flex:1;min-width:0}
+    .uname{font-weight:700}
+    .dname{color:#666;font-size:14px}
+    .follow-btn{border:1px solid #dbdbdb;background:#fff;border-radius:8px;padding:8px 12px;cursor:pointer;font-weight:700}
+    .follow-btn.following{background:#0095f6;color:#fff;border-color:#0095f6}
+    .empty{color:#8e8e8e;text-align:center;margin:24px 0}
+
+    /* Vollbild-Profil wie homepage.html */
+    .profile-overlay{position:fixed;inset:0;background:#fff;z-index:200;display:none;flex-direction:column}
+    .po-header{height:60px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #dbdbdb;padding:0 16px;position:sticky;top:0;background:#fff}
+    .po-header .left{display:flex;align-items:center;gap:10px}
+    .po-header .back{background:none;border:none;font-size:22px;cursor:pointer}
+    .po-header .title{font-weight:700}
+    .po-body{flex:1;overflow:auto}
+    .po-main{max-width:935px;margin:0 auto;padding:16px}
+    .po-profile{display:flex;gap:24px;align-items:center;margin:10px 0 18px}
+    .po-photo{width:120px;height:120px;border-radius:50%;border:2px solid #dbdbdb;object-fit:cover}
+    .po-info{flex:1}
+    .po-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+    .po-username{font-size:24px;font-weight:700}
+    .po-follow{border:1px solid #dbdbdb;background:#fff;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer}
+    .po-follow.following{background:#0095f6;color:#fff;border-color:#0095f6}
+    .po-stats{display:flex;gap:24px;margin:8px 0}
+    .po-stats b{margin-right:6px}
+    .po-dname{font-weight:600}
+    .po-bio{color:#666;white-space:pre-line}
+    .po-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:16px}
+    .po-tile{border:1px solid #dbdbdb;border-radius:10px;overflow:hidden;background:#fff;cursor:pointer}
+    .po-tile img{width:100%;height:180px;object-fit:cover;display:block}
+
+    /* Bottom nav */
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #dbdbdb;padding:16px 0;z-index:100}
+    .nav-container{max-width:500px;margin:0 auto;display:flex;justify-content:space-around;align-items:center}
+    .nav-item{background:none;border:none;cursor:pointer;width:48px;height:48px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+    .nav-item.plus-btn{width:35px;height:35px;border:2px solid #262626;border-radius:4px}
+    .nav-item svg{width:24px;height:24px;color:#262626}
+  </style>
 </head>
 <body>
-    <!-- Top Navigation -->
-    <nav class="top-nav">
-        <div class="nav-left"></div>
-        <div class="nav-center">
-            <img src="https://i.ibb.co/Q7mG5wr3/Gibbsta-Logo-Haupt.png" alt="Gibbsta Logo" class="nav-logo">
-        </div>
-        <div class="nav-right"></div>
-    </nav>
 
-    <div class="search-container">
-        <div class="search-header">
-            <h3>Suchen</h3>
-            <button class="close-search" onclick="goBack()">×</button>
-        </div>
-        
-        <div class="search-input-container">
-            <i class="fas fa-search"></i>
-            <input type="text" id="searchInput" placeholder="Suche nach Benutzern oder Beiträgen..." oninput="handleSearch()">
-        </div>
+<header class="header">
+  <nav class="nav">
+    <img src="https://i.ibb.co/Q7mG5wr3/Gibbsta-Logo-Haupt.png" alt="Gibbsta">
+  </nav>
+</header>
 
-        <div class="search-sections">
-            <button class="search-tab active" onclick="switchSearchTab('accounts')">Accounts</button>
-            <button class="search-tab" onclick="switchSearchTab('posts')">Beiträge</button>
-        </div>
-
-        <div id="searchResults" class="search-results">
-            <!-- Suchergebnisse werden hier dynamisch eingefügt -->
-        </div>
+<main class="wrap">
+  <section class="search-card">
+    <div class="search-row">
+      <input id="q" type="text" placeholder="Benutzer suchen… (@name oder Name)">
+      <button id="searchBtn"><i class="fa-solid fa-magnifying-glass"></i> Suchen</button>
     </div>
+  </section>
 
-    <!-- Bottom Navigation -->
-    <nav class="bottom-nav">
-        <div class="nav-container">
-            <button class="nav-item" onclick="location.href='home.html'">
-                <i class="fas fa-home"></i>
-            </button>
-            <button class="nav-item active">
-                <i class="fas fa-search"></i>
-            </button>
-            <button class="nav-item plus-btn" onclick="location.href='post.html'">
-                <i class="fas fa-plus"></i>
-            </button>
-            <button class="nav-item" onclick="location.href='homepage.html'">
-                <i class="fas fa-user"></i>
-            </button>
+  <section class="list" id="results"></section>
+  <p class="empty" id="empty">Gib oben etwas ein, z. B. <b>@max</b></p>
+</main>
+
+<!-- Vollbild Profil-Overlay -->
+<div id="profileOverlay" class="profile-overlay" aria-hidden="true">
+  <div class="po-header">
+    <div class="left">
+      <button class="back" id="poBack" title="Zurück"><i class="fa-solid fa-arrow-left"></i></button>
+      <div class="title">Profil</div>
+    </div>
+    <div style="width:24px"></div>
+  </div>
+
+  <div class="po-body">
+    <div class="po-main">
+      <section class="po-profile">
+        <img id="poPhoto" class="po-photo" src="https://via.placeholder.com/150/dbdbdb/262626?text=+" alt="Profilbild">
+        <div class="po-info">
+          <div class="po-row">
+            <div id="poUsername" class="po-username">@user</div>
+            <button id="poFollowBtn" class="po-follow">Folgen</button>
+          </div>
+          <div class="po-stats">
+            <div><b id="poPosts">0</b> Beiträge</div>
+            <div><b id="poFollowers">0</b> Follower</div>
+            <div><b id="poFollowing">0</b> Folge ich</div>
+          </div>
+          <div class="po-dname" id="poDname">—</div>
+          <div class="po-bio" id="poBio">(keine Bio)</div>
         </div>
-    </nav>
+      </section>
 
-    <script src="search-script.js"></script>
+      <section>
+        <div class="po-grid" id="poGrid"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Navigation -->
+<nav class="bottom-nav">
+  <div class="nav-container">
+    <button class="nav-item" onclick="location.href='home.html'">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    </button>
+    <button class="nav-item" onclick="location.href='search.html'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    </button>
+    <button class="nav-item plus-btn" onclick="location.href='post.html'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </button>
+    <button class="nav-item" onclick="location.href='homepage.html'">
+      <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M12 14c-4.5 0-8 2.5-8 5v1h16v-1c0-2.5-3.5-5-8-5z"/></svg>
+    </button>
+  </div>
+</nav>
+
+<script src="search-script.js"></script>
 </body>
 </html>

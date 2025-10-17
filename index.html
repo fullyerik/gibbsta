@@ -4,6 +4,14 @@
   <meta charset="UTF-8">
   <title>Gibbsta - Login</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+     <script>
+          const SUPABASE_URL = "https://sdmlprsgxgrnzoqvgyqz.supabase.co";
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbWxwcnNneGdybnpvcXZneXF6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDMyMDk4NiwiZXhwIjoyMDc1ODk2OTg2fQ.rWp3zL2V37X76_PdQAq-pw4uSzpOIyeQ9l3bjEC7tCM";
+      window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      async function sbUser() { return (await sb.auth.getUser()).data.user; }
+      function publicUrl(path) { return sb.storage.from('images').getPublicUrl(path).data.publicUrl; }
+  </script>
 </head>
 <body>
   <div class="container">
@@ -14,7 +22,7 @@
     <div class="login-box">
       <div id="loginForm" class="form-section">
         <h2>Login</h2>
-        <input type="text" id="logUser" placeholder="Benutzername oder E-Mail">
+        <input type="text" id="logUser" placeholder="E-Mail">
         <input type="password" id="logPass" placeholder="Passwort">
         <button onclick="login()">Login</button>
         <p class="switch-text">Noch kein Account? <a href="#" onclick="toggleForms()">Registrieren</a></p>

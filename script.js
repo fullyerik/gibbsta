@@ -54,84 +54,68 @@ function checkAge() {
     
     parentalConsentGroup.style.display = age === '13-17' ? 'flex' : 'none';
 }
+async function register() {
+  const username = document.getElementById('regUser').value.trim();
+  const email    = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPass').value;
+  const msg = document.getElementById('message');
 
-// Erweitere die Register-Funktion
-function register() {
-    const username = document.getElementById('regUser').value;
-    const email = document.getElementById('regEmail').value;
-    const password = document.getElementById('regPass').value;
-    const messageElement = document.getElementById('message');
+  if (!username || !email || !password) {
+    msg.textContent = "Bitte alle Felder ausfüllen.";
+    msg.className = "error";
+    return;
+  }
 
-    // Validate username
-    if (!username) {
-        messageElement.textContent = 'Fehler: Bitte geben Sie einen Benutzernamen ein!';
-        messageElement.className = 'error';
-        return;
+  try {
+    // Prüfen, ob Username bereits existiert
+    const { data: nameCheck, error: nameErr } = await sb
+      .from("profiles")
+      .select("id")
+      .ilike("username", username)
+      .range(0, 0);
+    if (nameErr) throw nameErr;
+    if (nameCheck && nameCheck[0]) {
+      msg.textContent = "Benutzername ist bereits vergeben.";
+      msg.className = "error";
+      return;
     }
 
-    // Validate email
-    if (!email || !validateEmail(email)) {
-        messageElement.textContent = 'Fehler: Bitte geben Sie eine gültige E-Mail-Adresse ein!';
-        messageElement.className = 'error';
-        return;
-    }
+    // SignUp
+    const { data, error } = await sb.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { username } // wird auch in auth.users.user_metadata.username gespeichert
+      },
+    });
+    if (error) throw error;
 
-    // Validate password
-    const passwordErrors = validatePassword(password);
-    if (passwordErrors.length > 0) {
-        messageElement.textContent = 'Passwort muss enthalten: ' + passwordErrors.join(', ');
-        messageElement.className = 'error';
-        return;
-    }
+    const user = data.user;
+    if (!user) throw new Error("Registrierung fehlgeschlagen.");
 
-    // Überprüfe AGBs und Datenschutz
-    if (!document.getElementById('agbCheckbox').checked) {
-        messageElement.textContent = 'Bitte akzeptiere die AGB.';
-        messageElement.className = 'error';
-        return;
-    }
+    // Profil-Eintrag in 'profiles' mit id = user.id anlegen
+    const { error: upErr } = await sb.from("profiles").upsert(
+      {
+        id: user.id,
+        username,
+        email,
+        display_name: username,
+      },
+      { onConflict: "id" }
+    );
+    if (upErr) throw upErr;
 
-    if (!document.getElementById('privacyCheckbox').checked) {
-        messageElement.textContent = 'Bitte akzeptiere die Datenschutzerklärung.';
-        messageElement.className = 'error';
-        return;
-    }
-
-    if (!document.getElementById('ageConfirmCheckbox').checked) {
-        messageElement.textContent = 'Bitte bestätige dein Alter.';
-        messageElement.className = 'error';
-        return;
-    }
-
-    const age = document.getElementById('userAge').value;
-    if (!age) {
-        messageElement.textContent = 'Bitte wähle dein Alter aus.';
-        messageElement.className = 'error';
-        return;
-    }
-
-    if (age === '13-17' && !document.getElementById('parentalConsentCheckbox').checked) {
-        messageElement.textContent = 'Bitte bestätige die Zustimmung deiner Erziehungsberechtigten.';
-        messageElement.className = 'error';
-        return;
-    }
-
-    // Store user data (temporary until database is implemented)
-    const userData = {
-        username: username,
-        email: email,
-        password: password
-    };
-    
-    localStorage.setItem(username, JSON.stringify(userData));
-    messageElement.textContent = 'Registrierung erfolgreich! Bitte melden Sie sich jetzt an.';
-    messageElement.className = 'success';
-    
-    // Switch to login after 2 seconds
+    msg.textContent = "Registrierung erfolgreich! Bitte melde dich an.";
+    msg.className = "success";
     setTimeout(() => {
-        toggleForms();
-        document.getElementById('logUser').value = username;
-    }, 2000);
+      toggleForms();
+      document.getElementById("logUser").value = email;
+    }, 1200);
+  } catch (e) {
+    console.error("Register Error:", e);
+    msg.textContent = "Fehler: " + (e.message || e);
+    msg.className = "error";
+  }
 }
 
 // Beispiel für verschiedene Rollen/Rechte
@@ -206,63 +190,70 @@ function findUserByEmailOrUsername(identifier) {
     return null;
 }
 
-// Erweitere die bestehende Login-Funktion
-function login() {
-    const identifier = document.getElementById('logUser').value;
-    const password = document.getElementById('logPass').value;
-    const messageElement = document.getElementById('message');
-
-    if (!identifier || !password) {
-        messageElement.textContent = 'Fehler: Bitte füllen Sie alle Felder aus!';
-        messageElement.className = 'error';
-        return;
-    }
-
-    // Suche Benutzer anhand von E-Mail oder Benutzername
-    const user = findUserByEmailOrUsername(identifier);
-
-    if (!user) {
-        messageElement.textContent = 'Fehler: Benutzername/E-Mail oder Passwort falsch!';
-        messageElement.className = 'error';
-        return;
-    }
-
-    // Überprüfe das Passwort
-    if (user.password !== password) {
-        messageElement.textContent = 'Fehler: Benutzername/E-Mail oder Passwort falsch!';
-        messageElement.className = 'error';
-        return;
-    }
-
-    // Setze die Rolle
-    const userData = { ...user };
-    if (ADMIN_USERS[user.username]) {
-        userData.role = ADMIN_USERS[user.username].role;
-    } else {
-        userData.role = ROLES.USER;
-    }
-
-    // Speichere die User-Daten in der Session
-    sessionStorage.setItem('currentUser', JSON.stringify(userData));
-    
-    // Weiterleitung zur Home-Seite
-    window.location.href = 'home.html';
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-// Beispiel für Verwendung der Berechtigungen
-function checkUserPermissions() {
-    const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
-    
-    // Beispiele für Berechtigungsprüfungen
-    if (hasPermission(currentUser, 'delete_posts')) {
-        // Zeige Delete-Button an
-        showDeleteButtons();
+async function login() {
+  const email = document.getElementById('logUser').value.trim(); // ← nur E-Mail
+  const password = document.getElementById('logPass').value;
+  const msg = document.getElementById('message');
+
+  if (!email || !password) {
+    msg.textContent = 'Bitte E-Mail und Passwort eingeben.';
+    msg.className = 'error';
+    return;
+  }
+  if (!isValidEmail(email)) {
+    msg.textContent = 'Bitte eine gültige E-Mail-Adresse eingeben.';
+    msg.className = 'error';
+    return;
+  }
+
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) {
+      if (/email not confirmed/i.test(error.message)) {
+        msg.textContent = 'Bitte bestätige zuerst deine E-Mail.';
+      } else if (/invalid login credentials/i.test(error.message)) {
+        msg.textContent = 'E-Mail oder Passwort ist falsch.';
+      } else {
+        msg.textContent = 'Login fehlgeschlagen: ' + error.message;
+      }
+      msg.className = 'error';
+      return;
     }
-    
-    if (hasPermission(currentUser, 'ban_users')) {
-        // Zeige Ban-Option an
-        showBanOptions();
-    }
+
+    const user = data.user;
+
+    // E-Mail ins Profil nachtragen (idempotent)
+    await sb.from('profiles').upsert(
+      { id: user.id, email: user.email },
+      { onConflict: 'id' }
+    );
+
+    // Profil abrufen (ohne .single())
+    const { data: profRows } = await sb
+      .from('profiles')
+      .select('role, username')
+      .eq('id', user.id)
+      .range(0, 0);
+
+    const prof = (profRows && profRows[0]) || null;
+
+    sessionStorage.setItem('currentUser', JSON.stringify({
+      id: user.id,
+      email: user.email,
+      username: prof?.username || '',
+      role: prof?.role || 'user'
+    }));
+
+    window.location.href = 'home.html';
+  } catch (e) {
+    console.error(e);
+    msg.textContent = 'Login fehlgeschlagen: ' + (e.message || e);
+    msg.className = 'error';
+  }
 }
 
 document.getElementById('regPass').addEventListener('input', function(e) {

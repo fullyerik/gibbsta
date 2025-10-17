@@ -1,94 +1,125 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gibbsta - Home</title>
-    <link rel="stylesheet" href="home-styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gibbsta – Home</title>
+
+  <!-- dein Haupt-CSS -->
+  <link rel="stylesheet" href="home-styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL="https://sdmlprsgxgrnzoqvgyqz.supabase.co";
+    const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbWxwcnNneGdybnpvcXZneXF6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDMyMDk4NiwiZXhwIjoyMDc1ODk2OTg2fQ.rWp3zL2V37X76_PdQAq-pw4uSzpOIyeQ9l3bjEC7tCM";
+    window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    function publicUrl(path){return sb.storage.from('images').getPublicUrl(path).data.publicUrl;}
+  </script>
+
+  <!-- kleines Extra-CSS nur fürs Overlay/Badge -->
+  <style>
+    .top-nav{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#fff;border-bottom:1px solid #dbdbdb;z-index:200}
+    .nav-logo{height:38px}
+    .notifications{position:relative;background:none;border:none;cursor:pointer;font-size:20px;margin:0 6px}
+    #navNotifBadge{position:absolute;top:-6px;right:-8px;background:#ed4956;color:#fff;font-size:11px;border-radius:10px;min-width:18px;height:18px;display:none;align-items:center;justify-content:center;padding:0 5px}
+
+    .content{max-width:760px;margin:80px auto 110px;padding:0 16px}
+
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #dbdbdb;padding:14px 0;z-index:100}
+    .nav-container{max-width:500px;margin:0 auto;display:flex;justify-content:space-around;align-items:center}
+    .nav-item{background:none;border:none;cursor:pointer;width:48px;height:48px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+    .plus-btn{width:35px;height:35px;border:2px solid #262626;border-radius:4px}
+    .nav-item svg{width:24px;height:24px;color:#262626}
+
+    /* Overlay */
+    #notifOverlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:300}
+    #notifOverlay.open{display:flex}
+    .sheet{width:min(520px,92vw);max-height:80vh;overflow:auto;background:#fff;border:1px solid #dbdbdb;border-radius:14px}
+    .sheet-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #efefef}
+    .sheet-head h3{font-size:18px;margin:0}
+    .sheet-body{padding:10px}
+    .sheet-foot{padding:10px;border-top:1px solid #efefef;display:flex;justify-content:flex-end;gap:8px}
+    .btn{border:1px solid #dbdbdb;background:#fff;border-radius:8px;padding:8px 12px;cursor:pointer;font-weight:700}
+    .btn.primary{background:#0095f6;color:#fff;border-color:#0095f6}
+    .notif{display:flex;gap:10px;align-items:center;border:1px solid #efefef;border-radius:10px;padding:10px;margin-bottom:8px;background:#fff}
+    .notif.unread{background:#f6f8ff}
+    .notif img{width:44px;height:44px;border-radius:8px;object-fit:cover;border:1px solid #ddd}
+    .notif-time{color:#8e8e8e;font-size:12px;margin-top:2px}
+  </style>
 </head>
 <body>
-    <nav class="top-nav">
-        <div class="nav-left">
-            <img src="https://i.ibb.co/Q7mG5wr3/Gibbsta-Logo-Haupt.png" alt="Gibbsta Logo" class="nav-logo">
-        </div>
-        <div class="nav-center">
-            <div class="notifications">
-                <a href="mitteilungen.html" style="color: inherit; text-decoration: none;">
-                    <i class="fas fa-inbox"></i>
-                    <span class="notification-badge">3</span>
-                </a>
-            </div>
-            <div class="notifications">
-                <a href="posteingang.html" style="color: inherit; text-decoration: none;">
-                    <i class="fas fa-heart"></i>
-                    <span class="notification-badge">5</span>
-                </a>
-            </div>
-        </div>
-        <div class="nav-right">
-            <button class="feed-toggle active">Für dich</button>
-            <button class="feed-toggle" onclick="window.location.href='following.html'">Gefolgt</button>
-            <button class="feed-toggle" onclick="window.location.href='favorite.html'">Favoriten</button>
-        </div>
-    </nav>
 
-    <main class="content">
-        <!-- Hier kommen später die Posts hin -->
-        <div class="post">
-            <div class="post-header">
-                <img src="default-avatar.png" alt="User Avatar" class="user-avatar">
-                <span class="username">Beispiel_User</span>
-                <button class="more-options"><i class="fas fa-ellipsis"></i></button>
-            </div>
-            <div class="post-image">
-                <img src="example-post.jpg" alt="Post Image">
-            </div>
-            <div class="post-actions">
-                <button><i class="far fa-heart"></i></button>
-                <button><i class="far fa-comment"></i></button>
-                <button><i class="far fa-paper-plane"></i></button>
-                <button class="save-post"><i class="far fa-bookmark"></i></button>
-            </div>
-            <div class="post-likes">123 Likes</div>
-            <div class="post-caption">
-                <span class="username">Beispiel_User</span>
-                <span class="caption-text">Das ist ein Beispiel-Post! #gibbsta #awesome</span>
-            </div>
-            <div class="post-comments">
-                <button class="view-comments">Alle 45 Kommentare anzeigen</button>
-            </div>
-            <div class="post-time">VOR 2 STUNDEN</div>
-        </div>
-    </main>
+  <!-- Header -->
+  <header class="top-nav">
+    <div class="nav-left">
+      <img class="nav-logo" src="https://i.ibb.co/Q7mG5wr3/Gibbsta-Logo-Haupt.png" alt="Gibbsta">
+    </div>
 
-    <!-- Neue Bottom Navigation -->
-    <nav class="bottom-nav">
-        <div class="nav-container">
-            <!-- Home/FY Icon (Links) -->
-            <button class="nav-item active">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-                </svg>
-            </button>
+    <div class="nav-center">
+      <!-- GLOCKE: IDs müssen genau so heißen -->
+      <button id="notifBtn" class="notifications" title="Mitteilungen">
+        <i class="fa-regular fa-bell"></i>
+        <span id="navNotifBadge">0</span>
+      </button>
+      <button class="notifications" title="Favoriten" onclick="location.href='favorite.html'">
+        <i class="fa-regular fa-heart"></i>
+      </button>
+    </div>
 
-            <!-- Such Icon (Mitte) -->
-            <button class="nav-item" onclick="location.href='search.html'">
-                <i class="fas fa-search"></i>
-            </button>
+    <div class="nav-right">
+      <button class="feed-toggle active" id="foryouBtn">Für dich</button>
+      <button class="feed-toggle" id="followingBtn">Gefolgt</button>
+      <button class="logout-btn" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+    </div>
+  </header>
 
-            <!-- Plus Button (wie I -->
-            <button class="nav-item" onclick="location.href='post.html'">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-            </button>
-            <!-- Profil Icon (Rechts) -->
-            <button class="nav-item" onclick="location.href='homepage.html'">
-                <i class="fas fa-user"></i>
-            </button>
-        </div>
-    </nav>
+  <!-- Inhalt -->
+  <main class="content">
+    <div id="postsContainer"></div>
+    <div class="no-posts" id="emptyFeed" style="display:none">
+      <i class="fa-regular fa-images"></i>
+      <h2>Keine Beiträge</h2>
+      <p>Folge Accounts oder erstelle deinen ersten Post.</p>
+      <button class="follow-btn" onclick="location.href='post.html'">Jetzt posten</button>
+    </div>
+  </main>
+
+  <!-- Bottom-Navigation -->
+  <nav class="bottom-nav">
+    <div class="nav-container">
+      <button class="nav-item" onclick="location.href='home.html'" title="Home">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      </button>
+      <button class="nav-item" onclick="location.href='search.html'" title="Suche">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </button>
+      <button class="nav-item plus-btn" onclick="location.href='post.html'" title="Posten">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <button class="nav-item" onclick="location.href='homepage.html'" title="Profil">
+        <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M12 14c-4.5 0-8 2.5-8 5v1h16v-1c0-2.5-3.5-5-8-5z"/></svg>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MITTEILUNGS-OVERLAY (wichtig: IDs!) -->
+  <div id="notifOverlay" aria-hidden="true">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h3>Mitteilungen</h3>
+        <button class="btn" id="closeNotif">Schließen</button>
+      </div>
+      <div id="notifList" class="sheet-body"></div>
+      <div class="sheet-foot">
+        <button class="btn" id="markRead">Alles als gelesen</button>
+        <button class="btn primary" id="refreshNotif">Aktualisieren</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feed + Notifications-Logik -->
+  <script src="home-script.js"></script>
 </body>
 </html>

@@ -1,716 +1,142 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Favoriten - GIBBSTA</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GIBBSTA – Favoriten</title>
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: #fafafa;
-            color: #262626;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+  <link rel="stylesheet" href="home-styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 
-        .header {
-            background: #fff;
-            border-bottom: 1px solid #dbdbdb;
-            padding: 16px 0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL="https://sdmlprsgxgrnzoqvgyqz.supabase.co";
+    const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbWxwcnNneGdybnpvcXZneXF6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDMyMDk4NiwiZXhwIjoyMDc1ODk2OTg2fQ.rWp3zL2V37X76_PdQAq-pw4uSzpOIyeQ9l3bjEC7tCM";
+    window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    function publicUrl(path){ return sb.storage.from('images').getPublicUrl(path).data.publicUrl; }
+  </script>
 
-        .nav {
-            max-width: 935px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 20px;
-        }
-
-        .back-btn {
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 50%;
-            transition: all 0.2s ease;
-        }
-
-        .back-btn:hover {
-            background: #f5f5f5;
-        }
-
-        .back-btn svg {
-            width: 24px;
-            height: 24px;
-            color: #262626;
-        }
-
-        .page-title {
-            font-size: 20px;
-            font-weight: 600;
-            color: #262626;
-        }
-
-        .spacer {
-            width: 40px;
-        }
-
-        .main-content {
-            flex: 1;
-            max-width: 935px;
-            margin: 0 auto;
-            padding: 20px;
-            width: 100%;
-        }
-
-        .search-section {
-            background: #fff;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border: 1px solid #dbdbdb;
-        }
-
-        .search-container {
-            position: relative;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 14px 20px 14px 50px;
-            border: 1px solid #dbdbdb;
-            border-radius: 25px;
-            background: #fafafa;
-            font-size: 14px;
-            color: #262626;
-            transition: all 0.2s ease;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: #0095f6;
-            background: #fff;
-            box-shadow: 0 0 10px rgba(0, 149, 246, 0.1);
-        }
-
-        .search-input::placeholder {
-            color: #8e8e8e;
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 18px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 16px;
-            height: 16px;
-            color: #8e8e8e;
-        }
-
-        .categories-nav {
-            background: #fff;
-            border-radius: 12px;
-            margin-bottom: 24px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border: 1px solid #dbdbdb;
-            overflow-x: auto;
-        }
-
-        .categories-list {
-            display: flex;
-            padding: 16px 20px;
-            gap: 8px;
-            min-width: max-content;
-        }
-
-        .category-btn {
-            background: transparent;
-            border: 1px solid #dbdbdb;
-            color: #8e8e8e;
-            padding: 10px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 14px;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .category-btn:hover {
-            background: #f5f5f5;
-        }
-
-        .category-btn.active {
-            background: #0095f6;
-            color: white;
-            border-color: #0095f6;
-        }
-
-        .category-btn svg {
-            width: 16px;
-            height: 16px;
-        }
-
-        .favorites-section {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border: 1px solid #dbdbdb;
-            overflow: hidden;
-            min-height: 400px;
-        }
-
-        .section-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid #dbdbdb;
-            background: #fafafa;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .section-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #262626;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .favorites-count {
-            font-size: 14px;
-            color: #8e8e8e;
-        }
-
-        .favorites-grid {
-            padding: 24px;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-        }
-
-        .favorite-item {
-            background: #fafafa;
-            border-radius: 12px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            border: 1px solid #dbdbdb;
-            cursor: pointer;
-        }
-
-        .favorite-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
-
-        .favorite-media {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            background: #dbdbdb;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #8e8e8e;
-            font-size: 14px;
-        }
-
-        .favorite-content {
-            padding: 16px;
-        }
-
-        .favorite-title {
-            font-weight: 600;
-            font-size: 14px;
-            color: #262626;
-            margin-bottom: 4px;
-            line-height: 1.3;
-        }
-
-        .favorite-description {
-            font-size: 12px;
-            color: #8e8e8e;
-            line-height: 1.4;
-            margin-bottom: 8px;
-        }
-
-        .favorite-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 12px;
-            color: #8e8e8e;
-        }
-
-        .favorite-date {
-            font-size: 12px;
-            color: #8e8e8e;
-        }
-
-        .unsave-btn {
-            background: transparent;
-            border: none;
-            color: #8e8e8e;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-        }
-
-        .unsave-btn:hover {
-            background: #f5f5f5;
-            color: #ed4956;
-        }
-
-        .unsave-btn svg {
-            width: 16px;
-            height: 16px;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 24px;
-            color: #8e8e8e;
-        }
-
-        .empty-icon {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 20px;
-            opacity: 0.5;
-        }
-
-        .empty-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #262626;
-        }
-
-        .empty-description {
-            font-size: 14px;
-            line-height: 1.5;
-            max-width: 300px;
-            margin: 0 auto;
-        }
-
-        .no-results {
-            text-align: center;
-            padding: 40px 24px;
-            color: #8e8e8e;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        @media (max-width: 768px) {
-            .main-content {
-                padding: 16px;
-            }
-
-            .favorites-grid {
-                grid-template-columns: 1fr;
-                padding: 16px;
-                gap: 16px;
-            }
-
-            .categories-list {
-                padding: 12px 16px;
-            }
-
-            .section-header {
-                padding: 16px 20px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .nav {
-                padding: 0 16px;
-            }
-
-            .page-title {
-                font-size: 18px;
-            }
-
-            .search-section {
-                padding: 20px;
-            }
-
-            .favorite-item {
-                margin-bottom: 12px;
-            }
-        }
-    </style>
+  <style>
+    body{background:#fafafa}
+    .top-nav{position:fixed;top:0;left:0;right:0;height:60px;background:#fff;border-bottom:1px solid #dbdbdb;display:flex;align-items:center;justify-content:center;z-index:100}
+    .nav-logo{height:40px}
+    .tabs{display:flex;gap:10px;margin:80px auto 10px;max-width:900px;padding:0 16px}
+    .tab{border:1px solid #dbdbdb;border-radius:20px;padding:8px 14px;background:#fff;cursor:pointer}
+    .tab.active{background:#0095f6;color:#fff;border-color:#0095f6}
+    .grid{max-width:900px;margin:0 auto 100px;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;padding:0 16px}
+    .tile{position:relative;border:1px solid #dbdbdb;border-radius:8px;overflow:hidden;background:#fff;cursor:pointer}
+    .tile img{width:100%;height:180px;object-fit:cover;display:block}
+    .tile .bar{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;font-size:14px}
+    .empty{max-width:900px;margin:40px auto;text-align:center;color:#8e8e8e}
+    /* Bottom nav */
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #dbdbdb;padding:16px 0;z-index:100}
+    .nav-container{max-width:500px;margin:0 auto;display:flex;justify-content:space-around;align-items:center}
+    .nav-item{background:none;border:none;cursor:pointer;width:48px;height:48px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+    .nav-item.plus-btn{width:35px;height:35px;border:2px solid #262626;border-radius:4px}
+    .nav-item svg{width:24px;height:24px;color:#262626}
+  </style>
 </head>
 <body>
-    <header class="header">
-        <nav class="nav">
-            <button class="back-btn" onclick="navigateToHome()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="m15 18-6-6 6-6"/>
-                </svg>
-            </button>
-            <h1 class="page-title">Favoriten</h1>
-            <div class="spacer"></div>
-        </nav>
-    </header>
 
-    <main class="main-content">
-        <div class="search-section">
-            <div class="search-container">
-                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="8"/>
-                    <path d="m21 21-4.35-4.35"/>
-                </svg>
-                <input type="text" class="search-input" placeholder="Durchsuche deine Favoriten..." id="searchInput">
+  <header class="top-nav">
+    <img class="nav-logo" src="https://i.ibb.co/Q7mG5wr3/Gibbsta-Logo-Haupt.png" alt="Gibbsta">
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="liked">Geliked</button>
+    <button class="tab" data-tab="saved">Gespeichert</button>
+  </div>
+
+  <section class="grid" id="grid"></section>
+  <p class="empty" id="empty" style="display:none">Hier ist noch nichts. Like oder speichere Beiträge.</p>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <div class="nav-container">
+      <button class="nav-item" onclick="location.href='home.html'">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      </button>
+      <button class="nav-item" onclick="location.href='search.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </button>
+      <button class="nav-item plus-btn" onclick="location.href='post.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <button class="nav-item" onclick="location.href='homepage.html'">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="12" cy="8" r="4"></circle>
+          <path d="M12 14c-4.5 0-8 2.5-8 5v1h16v-1c0-2.5-3.5-5-8-5z"></path>
+        </svg>
+      </button>
+    </div>
+  </nav>
+
+  <script>
+    let CU=null, active='liked';
+    const storage={key(s,id){return `${s}_${id}`},read(s,id){try{return JSON.parse(localStorage.getItem(this.key(s,id))||'[]')}catch{return[]}},write(s,id,v){localStorage.setItem(this.key(s,id),JSON.stringify(v))}};
+
+    document.querySelectorAll('.tab').forEach(b=>{
+      b.onclick=()=>{ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); b.classList.add('active'); active=b.dataset.tab; render(); };
+    });
+
+    function idsFromStore(){
+      if(!CU) return [];
+      const arr = active==='liked' ? storage.read('likes', CU.id) : storage.read('saved', CU.id);
+      // unsere Stores enthalten Objekte {postId, at:...}
+      return (arr||[]).map(x=>x.postId).filter(Boolean);
+    }
+
+    async function fetchPostsByIds(ids){
+      if(!ids.length) return [];
+      const { data, error } = await sb.from('posts')
+        .select('id, image_path, caption')
+        .in('id', ids);
+      if(error){ console.warn(error); return []; }
+      // gleiche Reihenfolge wie im Store (optional)
+      const map = Object.fromEntries((data||[]).map(p=>[p.id,p]));
+      return ids.map(id=>map[id]).filter(Boolean);
+    }
+
+    function openPost(id){ location.href='post.html?id='+encodeURIComponent(id); }
+
+    async function render(){
+      const grid = document.getElementById('grid'); grid.innerHTML='';
+      const ids = idsFromStore();
+
+      if(!ids.length){
+        document.getElementById('empty').style.display='block';
+        return;
+      }
+      document.getElementById('empty').style.display='none';
+
+      const posts = await fetchPostsByIds(ids);
+
+      if(!posts.length){
+        document.getElementById('empty').style.display='block';
+        return;
+      }
+
+      posts.forEach(p=>{
+        const img = publicUrl(p.image_path);
+        grid.insertAdjacentHTML('beforeend', `
+          <div class="tile" onclick="openPost('${p.id}')">
+            <img src="${img}" alt="">
+            <div class="bar">
+              <span>${active==='liked' ? 'Geliked' : 'Gespeichert'}</span>
+              <!-- Entfernen-Button bewusst entfernt -->
             </div>
-        </div>
+          </div>
+        `);
+      });
+    }
 
-        <div class="categories-nav">
-            <div class="categories-list">
-                <button class="category-btn active" data-category="all">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M3 3h7v7H3V3zm11 0h7v7h-7V3zM3 14h7v7H3v-7zm11 0h7v7h-7v-7z"/>
-                    </svg>
-                    Alle
-                </button>
-                <button class="category-btn" data-category="liked">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                    </svg>
-                    Liked
-                </button>
-                <button class="category-btn" data-category="photos">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
-                    </svg>
-                    Fotos
-                </button>
-                <button class="category-btn" data-category="videos">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M8 5v14l11-7z"/>
-                    </svg>
-                    Videos
-                </button>
-                <button class="category-btn" data-category="comments">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
-                    </svg>
-                    Kommentare
-                </button>
-                <button class="category-btn" data-category="accounts">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                    </svg>
-                    Kontos
-                </button>
-                <button class="category-btn" data-category="ads">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.05 4.11c-.05.23-.09.46-.09.7 0 1.66 1.34 3 3 3s3-1.34 3-3-1.34-3-3-3z"/>
-                    </svg>
-                    Werbungen
-                </button>
-            </div>
-        </div>
-
-        <div class="favorites-section">
-            <div class="section-header">
-                <h2 class="section-title" id="sectionTitle">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M3 3h7v7H3V3zm11 0h7v7h-7V3zM3 14h7v7H3v-7zm11 0h7v7h-7v-7z"/>
-                    </svg>
-                    Alle Favoriten
-                </h2>
-                <p class="favorites-count" id="favoritesCount">0 gespeichert</p>
-            </div>
-            
-            <div class="favorites-grid" id="favoritesGrid">
-                <!-- Empty State -->
-                <div class="empty-state" id="emptyState">
-                    <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                    </svg>
-                    <h3 class="empty-title">Noch keine Favoriten</h3>
-                    <p class="empty-description">Wenn du Beiträge, Kommentare oder Profile speicherst, werden sie hier angezeigt. Tippe auf das Lesezeichen-Symbol um Inhalte zu speichern.</p>
-                </div>
-
-                <!-- No search results -->
-                <div class="no-results hidden" id="noResults">
-                    <h3 class="empty-title">Keine Ergebnisse gefunden</h3>
-                    <p class="empty-description">Versuche einen anderen Suchbegriff oder wähle eine andere Kategorie.</p>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <script>
-        // Dummy data - in einer echten App würde das von einer API kommen
-        let favorites = {
-            liked: [], // NEU: Gelikte Beiträge
-            photos: [],
-            videos: [],
-            comments: [],
-            accounts: [],
-            ads: []
-        };
-
-        let currentCategory = 'all';
-        let filteredFavorites = [];
-
-        // Navigation Funktionen
-        function navigateToHome() {
-            window.location.href = 'home.html';
-        }
-
-        // Category Navigation
-        document.querySelectorAll('.category-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                currentCategory = this.dataset.category;
-                updateSectionTitle();
-                document.getElementById('searchInput').value = '';
-                renderFavorites();
-            });
-        });
-
-        // Update section title based on category
-        function updateSectionTitle() {
-            const sectionTitle = document.getElementById('sectionTitle');
-            const categoryData = {
-                all: { title: 'Alle Favoriten', icon: 'M3 3h7v7H3V3zm11 0h7v7h-7V3zM3 14h7v7H3v-7zm11 0h7v7h-7v-7z' },
-                liked: { title: 'Gelikte Beiträge', icon: 'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z' },
-                photos: { title: 'Gespeicherte Fotos', icon: 'M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z' },
-                videos: { title: 'Gespeicherte Videos', icon: 'M8 5v14l11-7z' },
-                comments: { title: 'Gespeicherte Kommentare', icon: 'M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z' },
-                accounts: { title: 'Gespeicherte Kontos', icon: 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z' },
-                ads: { title: 'Gespeicherte Werbungen', icon: 'M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.05 4.11c-.05.23-.09.46-.09.7 0 1.66 1.34 3 3 3s3-1.34 3-3-1.34-3-3-3z' }
-            };
-
-            const data = categoryData[currentCategory];
-            sectionTitle.innerHTML = `
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="${data.icon}"/>
-                </svg>
-                ${data.title}
-            `;
-        }
-
-        // Search Funktionalität
-        document.getElementById('searchInput').addEventListener('input', function(e) {
-            renderFavorites();
-        });
-
-        // Get favorites for current category
-        function getCurrentFavorites() {
-            if (currentCategory === 'all') {
-                return [
-                    ...favorites.liked,
-                    ...favorites.photos,
-                    ...favorites.videos,
-                    ...favorites.comments,
-                    ...favorites.accounts,
-                    ...favorites.ads
-                ];
-            }
-            return favorites[currentCategory] || [];
-        }
-
-        // Filter favorites based on search
-        function getFilteredFavorites() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
-            const currentFavorites = getCurrentFavorites();
-
-            if (searchTerm === '') {
-                return currentFavorites;
-            }
-
-            return currentFavorites.filter(item => 
-                item.title.toLowerCase().includes(searchTerm) ||
-                item.description.toLowerCase().includes(searchTerm) ||
-                item.author.toLowerCase().includes(searchTerm)
-            );
-        }
-
-        // Render favorites list
-        function renderFavorites() {
-            filteredFavorites = getFilteredFavorites();
-            const favoritesGrid = document.getElementById('favoritesGrid');
-            const emptyState = document.getElementById('emptyState');
-            const noResults = document.getElementById('noResults');
-            const searchTerm = document.getElementById('searchInput').value.trim();
-
-            const existingItems = favoritesGrid.querySelectorAll('.favorite-item');
-            existingItems.forEach(item => item.remove());
-
-            const totalFavorites = getCurrentFavorites().length;
-
-            if (totalFavorites === 0) {
-                emptyState.classList.remove('hidden');
-                noResults.classList.add('hidden');
-                
-                // Update empty state message based on category
-                const emptyTitle = document.querySelector('.empty-title');
-                const emptyDescription = document.querySelector('.empty-description');
-                
-                if (currentCategory === 'liked') {
-                    emptyTitle.textContent = 'Noch keine Likes';
-                    emptyDescription.textContent = 'Beiträge die du likest werden hier angezeigt. Tippe auf das Herz-Symbol um Beiträge zu liken.';
-                } else {
-                    emptyTitle.textContent = 'Noch keine Favoriten';
-                    emptyDescription.textContent = 'Wenn du Beiträge, Kommentare oder Profile speicherst, werden sie hier angezeigt. Tippe auf das Lesezeichen-Symbol um Inhalte zu speichern.';
-                }
-            } else if (filteredFavorites.length === 0 && searchTerm !== '') {
-                emptyState.classList.add('hidden');
-                noResults.classList.remove('hidden');
-            } else {
-                emptyState.classList.add('hidden');
-                noResults.classList.add('hidden');
-
-                filteredFavorites.forEach(favorite => {
-                    const favoriteItem = document.createElement('div');
-                    favoriteItem.className = 'favorite-item';
-                    
-                    let mediaContent = '';
-                    if (favorite.type === 'photo' || favorite.type === 'video' || favorite.type === 'liked') {
-                        mediaContent = favorite.thumbnail ? 
-                            `<img src="${favorite.thumbnail}" alt="${favorite.title}" class="favorite-media">` :
-                            `<div class="favorite-media">${favorite.type === 'photo' ? '📷' : favorite.type === 'video' ? '🎥' : '❤️'} ${favorite.type === 'photo' ? 'Foto' : favorite.type === 'video' ? 'Video' : 'Geliket'}</div>`;
-                    } else {
-                        const icons = {
-                            comment: '💬',
-                            account: '👤', 
-                            ad: '📢'
-                        };
-                        mediaContent = `<div class="favorite-media">${icons[favorite.type] || '📋'} ${favorite.type === 'comment' ? 'Kommentar' : favorite.type === 'account' ? 'Konto' : 'Werbung'}</div>`;
-                    }
-
-                    // Unlike Button für gelikte Items
-                    const actionButton = favorite.type === 'liked' ? 
-                        `<button class="unsave-btn" onclick="removeFavorite('${favorite.id}', '${favorite.type}')" title="Unlike">
-                            <svg viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                            </svg>
-                        </button>` :
-                        `<button class="unsave-btn" onclick="removeFavorite('${favorite.id}', '${favorite.type}')" title="Entfernen">
-                            <svg viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                            </svg>
-                        </button>`;
-
-                    favoriteItem.innerHTML = `
-                        ${mediaContent}
-                        <div class="favorite-content">
-                            <div class="favorite-title">${favorite.title}</div>
-                            <div class="favorite-description">${favorite.description}</div>
-                            <div class="favorite-meta">
-                                <div>
-                                    <div style="font-weight: 500;">@${favorite.author}</div>
-                                    <div class="favorite-date">${favorite.date}</div>
-                                </div>
-                                ${actionButton}
-                            </div>
-                        </div>
-                    `;
-                    
-                    favoritesGrid.insertBefore(favoriteItem, emptyState);
-                });
-            }
-
-            updateFavoritesCount();
-        }
-
-        // Update favorites count
-        function updateFavoritesCount() {
-            const count = filteredFavorites.length;
-            const total = getCurrentFavorites().length;
-            const countElement = document.getElementById('favoritesCount');
-            
-            if (currentCategory === 'liked') {
-                if (count === total) {
-                    countElement.textContent = count === 1 ? '1 geliket' : `${count} geliket`;
-                } else {
-                    countElement.textContent = `${count} von ${total} angezeigt`;
-                }
-            } else {
-                if (count === total) {
-                    countElement.textContent = count === 1 ? '1 gespeichert' : `${count} gespeichert`;
-                } else {
-                    countElement.textContent = `${count} von ${total} angezeigt`;
-                }
-            }
-        }
-
-        // Remove favorite
-        function removeFavorite(favoriteId, type) {
-            if (type === 'liked') {
-                favorites.liked = favorites.liked.filter(item => item.id !== favoriteId);
-            } else if (type === 'photo') {
-                favorites.photos = favorites.photos.filter(item => item.id !== favoriteId);
-            } else if (type === 'video') {
-                favorites.videos = favorites.videos.filter(item => item.id !== favoriteId);
-            } else if (type === 'comment') {
-                favorites.comments = favorites.comments.filter(item => item.id !== favoriteId);
-            } else if (type === 'account') {
-                favorites.accounts = favorites.accounts.filter(item => item.id !== favoriteId);
-            } else if (type === 'ad') {
-                favorites.ads = favorites.ads.filter(item => item.id !== favoriteId);
-            }
-            
-            renderFavorites();
-        }
-
-        // Initial render
-        renderFavorites();
-
-        // Beispiel: Uncomment um Test-Favoriten hinzuzufügen
-        /*
-        setTimeout(() => {
-            // Gelikte Beiträge hinzufügen
-            favorites.liked.push({
-                id: 'like1',
-                type: 'liked',
-                title: 'Sonnenuntergang in den Bergen',
-                description: 'Ein wunderschöner Sonnenuntergang mit atemberaubender Aussicht',
-                author: 'nature_lover',
-                date: '15.09.2025',
-                thumbnail: 'https://via.placeholder.com/300x200/ff69b4/ffffff?text=❤️'
-            });
-            
-            favorites.liked.push({
-                id: 'like2', 
-                type: 'liked',
-                title: 'Leckeres Frühstück',
-                description: 'Perfekter Start in den Tag mit diesem gesunden Frühstück',
-                author: 'foodie_anna',
-                date: '14.09.2025',
-                thumbnail: 'https://via.placeholder.com/300x200/ff1493/ffffff?text=❤️'
-            });
-            
-            renderFavorites();
-        }, 1000);
-        */
-    </script>
+    (async function(){
+      const { data: auth } = await sb.auth.getUser();
+      CU = auth?.user;
+      if(!CU){ location.href='index.html'; return; }
+      render();
+    })();
+  </script>
 </body>
 </html>
