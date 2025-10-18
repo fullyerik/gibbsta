@@ -176,11 +176,11 @@
             <input class="form-input" id="editDisplayName" placeholder="Dein Name">
           </div>
         </div>
-        <!-- Bio bewusst NICHT in DB gespeichert (Spalte unklar) -->
+        <!-- Bio jetzt in DB gespeichert -->
         <div class="form-group">
-          <label class="form-label" for="editBio">Bio (lokal)</label>
+          <label class="form-label" for="editBio">Bio</label>
           <textarea class="form-input" id="editBio" rows="3" placeholder="Über dich…"></textarea>
-          <div class="hint">Hinweis: Bio wird vorläufig lokal gespeichert. (DB-Feld nicht bestätigt)</div>
+          <div class="hint">Die Bio wird in <code>profiles.bio</code> gespeichert und ist öffentlich sichtbar.</div>
         </div>
         <div id="editMsg" class=""></div>
       </div>
@@ -213,37 +213,45 @@
       setupRealtime(CU.id);
     });
 
+    function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
     async function loadProfileHeader(uid){
       try{
-        const { data: profRows } = await sb.from('profiles')
-          .select('username, display_name, avatar_url, avatar_path')
+        // DB-Profil inkl. BIO holen
+        const { data: profRow } = await sb.from('profiles')
+          .select('username, display_name, avatar_url, avatar_path, bio')
           .eq('id', uid)
-          .range(0,0);
+          .maybeSingle();
 
-        const prof = profRows && profRows[0];
-        const uname = prof?.username || (CU.email ? CU.email.split('@')[0] : 'user');
-        const photo = prof?.avatar_url || (prof?.avatar_path ? publicUrl(prof.avatar_path) : '');
+        // Migrations-Logik: lokale Bio → DB, wenn DB leer
+        const localKey = 'bio_'+uid;
+        const localBio = localStorage.getItem(localKey) || '';
+        let bioText = (profRow?.bio ?? '').trim();
+
+        if(!bioText && localBio.trim()){
+          // einmalig in DB speichern
+          await sb.from('profiles').upsert({ id: uid, bio: localBio.trim() }, { onConflict: 'id' });
+          localStorage.removeItem(localKey);
+          bioText = localBio.trim();
+        }
+
+        const uname = profRow?.username || (CU.email ? CU.email.split('@')[0] : 'user');
+        const photo = profRow?.avatar_url || (profRow?.avatar_path ? publicUrl(profRow.avatar_path) : '');
 
         CURRENT_UNAME = uname;
         CURRENT_AVATAR = photo;
 
         document.getElementById('username').textContent = uname;
-        if(prof?.display_name) document.getElementById('displayName').textContent = prof.display_name;
+        if(profRow?.display_name) document.getElementById('displayName').textContent = profRow.display_name;
         if(photo) document.getElementById('profilePhoto').src = photo;
-
-        // Bio (nur lokal)
-        const localBio = localStorage.getItem('bio_'+uid) || '';
-        document.getElementById('bio').textContent = localBio || 'Bio…';
+        document.getElementById('bio').textContent = bioText || 'Bio…';
       }catch(e){ console.warn(e); }
     }
 
     async function refreshCounts(uid){
-      const { count: followersCnt } = await sb
-        .from('follows').select('*',{head:true,count:'exact'}).eq('following_id', uid);
-      const { count: followingCnt } = await sb
-        .from('follows').select('*',{head:true,count:'exact'}).eq('follower_id', uid);
-      const { count: postsCnt } = await sb
-        .from('posts').select('*',{head:true,count:'exact'}).eq('user_id', uid);
+      const { count: followersCnt } = await sb.from('follows').select('*',{head:true,count:'exact'}).eq('following_id', uid);
+      const { count: followingCnt } = await sb.from('follows').select('*',{head:true,count:'exact'}).eq('follower_id', uid);
+      const { count: postsCnt } = await sb.from('posts').select('*',{head:true,count:'exact'}).eq('user_id', uid);
 
       document.getElementById('followerCount').textContent = followersCnt ?? 0;
       document.getElementById('followingCount').textContent = followingCnt ?? 0;
@@ -309,7 +317,7 @@
         .subscribe();
     }
 
-    // ===== Navigation + Post-Aktionen (nur eigene) =====
+    // ===== Navigation + Post-Aktionen =====
     function openPost(id){
       location.href = 'post.html?id=' + encodeURIComponent(id);
     }
@@ -321,7 +329,7 @@
       sb.from('posts')
         .update({ caption: next })
         .eq('id', postId)
-        .eq('user_id', CU.id) // Sicherheit: nur eigene Posts
+        .eq('user_id', CU.id)
         .then(({ error })=>{
           if(error){ alert('Fehler: ' + (error.message||error)); return; }
           loadMyPosts(CU.id);
@@ -333,7 +341,7 @@
       sb.from('posts')
         .delete()
         .eq('id', postId)
-        .eq('user_id', CU.id) // Sicherheit: nur eigene Posts
+        .eq('user_id', CU.id)
         .then(async ({ error })=>{
           if(error){ alert('Fehler: ' + (error.message||error)); return; }
           await refreshCounts(CU.id);
@@ -341,7 +349,7 @@
         });
     }
 
-    // ===== Edit Profile =====
+    // ===== Edit Profile (inkl. DB-Bio speichern) =====
     let selectedFile = null;
 
     function openEditModal(){
@@ -349,7 +357,6 @@
       document.getElementById('editMsg').className = '';
       document.getElementById('editMsg').textContent = '';
 
-      // Prefill
       document.getElementById('editUsername').value = CURRENT_UNAME || '';
       document.getElementById('editDisplayName').value = document.getElementById('displayName').textContent || '';
       document.getElementById('editBio').value = document.getElementById('bio').textContent === 'Bio…' ? '' : document.getElementById('bio').textContent;
@@ -383,7 +390,7 @@
 
       const newUsername = document.getElementById('editUsername').value.trim();
       const newDisplay  = document.getElementById('editDisplayName').value.trim();
-      const newBio      = document.getElementById('editBio').value.trim(); // lokal
+      const newBio      = document.getElementById('editBio').value.trim();
 
       if(!newUsername){
         msg.className='error';
@@ -404,15 +411,14 @@
           avatar_url  = publicUrl(key);
         }
 
-        // 2) Profil upserten (nur bekannte Spalten!)
-        const payload = { id: CU.id, username: newUsername };
+        // 2) Profil upserten (DB-Bio inklusive)
+        const payload = { id: CU.id, username: newUsername, bio: newBio || null };
         if(newDisplay) payload.display_name = newDisplay;
         if(avatar_path) payload.avatar_path = avatar_path;
         if(avatar_url)  payload.avatar_url  = avatar_url;
 
         const { error: pErr } = await sb.from('profiles').upsert(payload, { onConflict:'id' });
         if(pErr){
-          // Häufigster Fall: UNIQUE-Verletzung bei username
           if(String(pErr.message||'').toLowerCase().includes('duplicate') || String(pErr.details||'').toLowerCase().includes('already exists')){
             msg.className='error';
             msg.textContent='Benutzername bereits vergeben. Bitte wähle einen anderen.';
@@ -421,10 +427,10 @@
           throw pErr;
         }
 
-        // 3) Bio lokal speichern (DB-Feld nicht gesichert)
-        localStorage.setItem('bio_'+CU.id, newBio || '');
+        // Lokale Alt-Bio säubern (Migration abgeschlossen)
+        try{ localStorage.removeItem('bio_'+CU.id); }catch{}
 
-        // 4) UI aktualisieren
+        // 3) UI aktualisieren
         CURRENT_UNAME  = newUsername;
         if(avatar_url) CURRENT_AVATAR = avatar_url;
         document.getElementById('username').textContent = CURRENT_UNAME;
@@ -432,8 +438,7 @@
         document.getElementById('bio').textContent = newBio || 'Bio…';
         if(CURRENT_AVATAR) document.getElementById('profilePhoto').src = CURRENT_AVATAR;
 
-        // Posts-Kacheln neu aufbauen, damit Username/Avatar darunter direkt aktualisiert sind
-        await loadMyPosts(CU.id);
+        await loadMyPosts(CU.id); // Username/Avatar in Kacheln aktualisieren
 
         msg.className='success';
         msg.textContent='Profil gespeichert.';
@@ -443,10 +448,6 @@
         msg.className='error';
         msg.textContent='Speichern fehlgeschlagen: ' + (e.message || e);
       }
-    }
-
-    function escapeHtml(s){
-      return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
   </script>
 </body>
