@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gibbsta – Nachrichten</title>
+  <link rel="stylesheet" href="home-styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL="https://sdmlprsgxgrnzoqvgyqz.supabase.co";
+    const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbWxwcnNneGdybnpvcXZneXF6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDMyMDk4NiwiZXhwIjoyMDc1ODk2OTg2fQ.rWp3zL2V37X76_PdQAq-pw4uSzpOIyeQ9l3bjEC7tCM";
+    window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    function publicUrl(path){ return sb.storage.from('images').getPublicUrl(path).data.publicUrl; }
+  </script>
+  <style>
+    body{background:#fafafa}
+    .wrap{max-width:980px;margin:80px auto 90px;display:grid;grid-template-columns:320px 1fr;gap:14px;padding:0 16px}
+    .panel{background:#fff;border:1px solid #dbdbdb;border-radius:12px;overflow:hidden}
+    .panel-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid #efefef;background:#fafafa}
+    .panel-head h3{margin:0;font-size:16px}
+    .threads{max-height:calc(100vh - 220px);overflow:auto}
+    .thread{display:grid;grid-template-columns:56px 1fr auto;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid #efefef;cursor:pointer}
+    .thread:hover{background:#fafafa}
+    .ava{width:48px;height:48px;border-radius:50%;object-fit:cover;border:1px solid #ddd}
+    .t-meta{display:flex;flex-direction:column}
+    .t-uname{font-weight:700}
+    .t-last{color:#666;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:360px}
+    .t-badge{min-width:20px;height:20px;border-radius:10px;background:#ed4956;color:#fff;display:none;align-items:center;justify-content:center;font-size:12px;padding:0 6px}
+    .t-badge.show{display:flex}
+    .chat{display:flex;flex-direction:column;height:calc(100vh - 220px)}
+    .chat-list{flex:1;overflow:auto;padding:12px}
+    .msg{max-width:75%;margin-bottom:8px;padding:8px 12px;border-radius:12px;border:1px solid #dbdbdb;word-wrap:break-word}
+    .from-me{margin-left:auto;background:#e8f3ff;border-color:#cfe7ff}
+    .from-other{margin-right:auto;background:#fff}
+    .chat-input{display:flex;gap:8px;padding:10px;border-top:1px solid #efefef;background:#fafafa}
+    .chat-input input{flex:1;border:1px solid #dbdbdb;border-radius:10px;padding:10px 12px}
+    .chat-input button{border:none;background:#0095f6;color:#fff;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
+    .tools{display:flex;gap:8px;align-items:center}
+    .tools .btn{border:1px solid #dbdbdb;background:#fff;border-radius:8px;padding:6px 10px;cursor:pointer;font-weight:600}
+    @media(max-width:900px){ .wrap{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+  <header class="top-nav">
+    <img class="nav-logo" src="https://i.ibb.co/Q7mG5wr3/Gibbsta-Logo-Haupt.png" alt="Gibbsta">
+  </header>
+
+  <main class="wrap">
+    <!-- Thread-Liste -->
+    <section class="panel">
+      <div class="panel-head">
+        <h3>Chats</h3>
+        <button class="btn" id="newChatBtn" onclick="startNewChat()">Neuer Chat</button>
+      </div>
+      <div id="threads" class="threads"></div>
+    </section>
+
+    <!-- Chat-Panel -->
+    <section class="panel">
+      <div class="panel-head">
+        <h3 id="chatTitle">Kein Chat ausgewählt</h3>
+        <div class="tools">
+          <button class="btn" id="markReadBtn" disabled>Als gelesen</button>
+        </div>
+      </div>
+      <div id="chatList" class="chat">
+        <div id="msgs" class="chat-list"></div>
+        <div class="chat-input">
+          <input id="msgInput" type="text" placeholder="Nachricht schreiben…" disabled>
+          <button id="sendBtn" disabled>Senden</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <div class="nav-container">
+      <button class="nav-item" onclick="location.href='home.html'">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      </button>
+      <button class="nav-item" onclick="location.href='search.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </button>
+      <button class="nav-item plus-btn" onclick="location.href='post.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <button class="nav-item" onclick="location.href='homepage.html'">
+        <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M12 14c-4.5 0-8 2.5-8 5v1h16v-1c0-2.5-3.5-5-8-5z"/></svg>
+      </button>
+    </div>
+  </nav>
+
+  <script>
+    let CU=null, CURRENT_OTHER=null, RTM=null;
+    const qs = new URLSearchParams(location.search);
+    const preselect = qs.get('uid'); // optional: direkt mit user starten (z.B. von Profil)
+
+    function escape(s){ return String(s||'').replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+
+    async function getUser(){
+      const u = (await sb.auth.getUser()).data.user;
+      if(!u){ location.href='index.html'; return null; }
+      return u;
+    }
+
+    async function profilesMap(ids){
+      if(!ids.length) return {};
+      const { data } = await sb.from('profiles')
+        .select('id,username,display_name,avatar_url,avatar_path')
+        .in('id', [...new Set(ids)]);
+      const map={};
+      for(const p of (data||[])){
+        map[p.id] = {
+          username: p.username || p.id.slice(0,8),
+          display:  p.display_name || '',
+          avatar:   p.avatar_url || (p.avatar_path ? publicUrl(p.avatar_path) : 'https://via.placeholder.com/80/dbdbdb/262626?text=+')
+        };
+      }
+      return map;
+    }
+
+    /* Threads = alle Gegenüber, mit denen ich Nachrichten habe (beide Richtungen) */
+    async function loadThreads(){
+      const { data: rows } = await sb
+        .from('messages')
+        .select('from_user_id,to_user_id,text,read,created_at')
+        .or(`from_user_id.eq.${CU.id},to_user_id.eq.${CU.id}`)
+        .order('created_at',{ascending:false})
+        .limit(500);
+
+      const order = [];
+      const unreadByOther = new Map();
+      const lastByOther = new Map();
+
+      for(const m of (rows||[])){
+        const other = (m.from_user_id===CU.id) ? m.to_user_id : m.from_user_id;
+        if(!order.includes(other)) order.push(other);
+        if(m.to_user_id===CU.id && !m.read){
+          unreadByOther.set(other, (unreadByOther.get(other)||0)+1);
+        }
+        if(!lastByOther.has(other)) lastByOther.set(other, m.text);
+      }
+
+      const pm = await profilesMap(order);
+      const list = document.getElementById('threads');
+      list.innerHTML='';
+
+      for(const otherId of order){
+        const card = document.createElement('div');
+        card.className = 'thread';
+        const p = pm[otherId] || { username: otherId.slice(0,8), display:'', avatar:'https://via.placeholder.com/80/dbdbdb/262626?text=+' };
+        const unread = unreadByOther.get(otherId)||0;
+        const last = lastByOther.get(otherId)||'';
+
+        card.innerHTML = `
+          <img class="ava" src="${p.avatar}" alt="">
+          <div class="t-meta">
+            <div class="t-uname">@${escape(p.username)} ${p.display? '· '+escape(p.display):''}</div>
+            <div class="t-last">${escape(last)}</div>
+          </div>
+          <div class="t-badge ${unread>0?'show':''}">${unread>99?'99+':unread||''}</div>
+        `;
+        card.addEventListener('click', ()=> openChat(otherId, p));
+        list.appendChild(card);
+      }
+
+      if(order.length===0){
+        list.innerHTML = `<div style="padding:14px;color:#8e8e8e">Keine Chats. Suche einen Nutzer und schreibe ihm.</div>`;
+      }
+    }
+
+    async function openChat(otherId, pInfo){
+      CURRENT_OTHER = otherId;
+      document.getElementById('chatTitle').textContent = '@'+(pInfo?.username || otherId.slice(0,8));
+      document.getElementById('msgInput').disabled = false;
+      document.getElementById('sendBtn').disabled = false;
+      document.getElementById('markReadBtn').disabled = false;
+
+      await renderChat(otherId);
+
+      // Ungelesenes dieses Threads als gelesen markieren
+      await sb.from('messages').update({ read:true })
+        .eq('to_user_id', CU.id).eq('from_user_id', otherId).eq('read', false);
+
+      // Realtime für diesen Thread
+      if(RTM) { try{ sb.removeChannel(RTM); }catch{} }
+      try{
+        RTM = sb.channel('dm_thread_'+CU.id+'_'+otherId)
+          .on('postgres_changes', {event:'*',schema:'public',table:'messages',
+            filter:`or(and(from_user_id.eq.${otherId},to_user_id.eq.${CU.id}),and(from_user_id.eq.${CU.id},to_user_id.eq.${otherId}))`
+          }, ()=> renderChat(otherId))
+          .subscribe();
+      }catch(e){ console.warn('RTM thread', e); }
+    }
+
+    async function renderChat(otherId){
+      const wrap = document.getElementById('msgs');
+      wrap.innerHTML = '';
+
+      const { data: rows } = await sb
+        .from('messages')
+        .select('id,from_user_id,to_user_id,text,read,created_at')
+        .or(`and(from_user_id.eq.${CU.id},to_user_id.eq.${otherId}),and(from_user_id.eq.${otherId},to_user_id.eq.${CU.id})`)
+        .order('created_at',{ascending:true})
+        .limit(500);
+
+      for(const m of (rows||[])){
+        const div = document.createElement('div');
+        const mine = (m.from_user_id===CU.id);
+        div.className = 'msg '+(mine? 'from-me':'from-other');
+        div.textContent = m.text;
+        wrap.appendChild(div);
+      }
+      wrap.scrollTop = wrap.scrollHeight;
+
+      // Thread-Liste aktualisieren (letzte Nachricht/Badges)
+      await loadThreads();
+    }
+
+    async function sendCurrent(){
+      const inp = document.getElementById('msgInput');
+      const txt = (inp.value||'').trim();
+      if(!txt || !CURRENT_OTHER) return;
+      const { error } = await sb.from('messages').insert({
+        from_user_id: CU.id, to_user_id: CURRENT_OTHER, text: txt
+      });
+      if(error){ alert('Konnte nicht senden: '+(error.message||error)); return; }
+      inp.value='';
+      // Realtime sorgt fürs Nachladen; fallback:
+      // await renderChat(CURRENT_OTHER);
+    }
+
+    function startNewChat(){
+      const uid = prompt('User-ID des Empfängers eingeben (oder @username in Suche öffnen):');
+      if(!uid) return;
+      openChat(uid, { username: uid.slice(0,8) });
+    }
+
+    document.getElementById('sendBtn').addEventListener('click', sendCurrent);
+    document.getElementById('msgInput').addEventListener('keydown', (e)=>{ if(e.key==='Enter') sendCurrent(); });
+    document.getElementById('markReadBtn').addEventListener('click', async ()=>{
+      if(!CURRENT_OTHER) return;
+      await sb.from('messages').update({ read:true })
+        .eq('to_user_id', CU.id).eq('from_user_id', CURRENT_OTHER).eq('read', false);
+      await renderChat(CURRENT_OTHER);
+    });
+
+    (async function init(){
+      CU = await getUser(); if(!CU) return;
+
+      await loadThreads();
+
+      // Globales Realtime: neue Nachrichten an mich → Threads/Badges aktualisieren
+      try{
+        sb.channel('dm_global_'+CU.id)
+          .on('postgres_changes', {event:'*',schema:'public',table:'messages',filter:`to_user_id=eq.${CU.id}`},
+            ()=> loadThreads())
+          .subscribe();
+      }catch(e){ console.warn('RTM global', e); }
+
+      // Optional: Direkt mit einem User öffnen (?uid=...)
+      if(preselect){ openChat(preselect, null); }
+    })();
+  </script>
+</body>
+</html>

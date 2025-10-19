@@ -23,6 +23,7 @@
     .nav-logo{height:38px}
     .notifications{position:relative;background:none;border:none;cursor:pointer;font-size:20px;margin:0 6px}
     #navNotifBadge{position:absolute;top:-6px;right:-8px;background:#ed4956;color:#fff;font-size:11px;border-radius:10px;min-width:18px;height:18px;display:none;align-items:center;justify-content:center;padding:0 5px}
+#navMsgBadge{position:absolute;top:-6px;right:-8px;background:#ed4956;color:#fff;font-size:11px;border-radius:10px;min-width:18px;height:18px;display:none;align-items:center;justify-content:center;padding:0 5px}
     .content{max-width:760px;margin:80px auto 110px;padding:0 16px}
     .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #dbdbdb;padding:14px 0;z-index:100}
     .nav-container{max-width:500px;margin:0 auto;display:flex;justify-content:space-around;align-items:center}
@@ -55,6 +56,10 @@
       <button id="notifBtn" class="notifications" title="Mitteilungen">
         <i class="fa-regular fa-bell"></i>
         <span id="navNotifBadge">0</span>
+      </button>
+      <button id="msgBtn" class="notifications" title="Nachrichten" onclick="location.href='nachricht.html'">
+        <i class="fa-regular fa-message"></i>
+        <span id="navMsgBadge">0</span>
       </button>
       <button class="notifications" title="Favoriten" onclick="location.href='favorite.html'">
         <i class="fa-regular fa-heart"></i>
