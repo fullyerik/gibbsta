@@ -131,13 +131,13 @@
         row.innerHTML = `
           <img class="ava" src="${u.avatar || 'assets/img/default-avatar.png'}" alt="${u.username}">
           <div class="info">
-            <div class="uname">@${u.username}</div>
+            <a class="uname" href="homepage.html?uid=${encodeURIComponent(u.id)}">@${u.username}</a>
             <div class="dname">${u.displayName || ''}</div>
           </div>
           <button class="btn btn-plain" title="Entfolgen">Entfolgen</button>
         `;
         // Klick auf Row -> (optional) Profil öffnen
-        row.addEventListener('click', (e)=>{ if(e.target.tagName.toLowerCase()==='button') return; window.location.href='homepage.html'; });
+        row.addEventListener('click', (e)=>{ if(e.target.tagName.toLowerCase()==='button') return; window.location.href='homepage.html?uid='+encodeURIComponent(u.id); });
         // Entfolgen
         row.querySelector('button').addEventListener('click', (e)=>{ e.stopPropagation(); unfollow(u.id); });
         listEl.insertBefore(row, emptyEl);

@@ -194,21 +194,31 @@
     // Globale Profil-Daten
     let CURRENT_UNAME = '', CURRENT_AVATAR = '', CU = null;
 
-    document.addEventListener('DOMContentLoaded', async () => {
+    const QS = new URLSearchParams(location.search);
+    const VIEW_UID = QS.get('uid'); // wenn gesetzt, fremdes Profil anzeigen
+document.addEventListener('DOMContentLoaded', async () => {
       CU = await sbUser();
       if(!CU){ location.href = 'index.html'; return; }
 
-      // Profil laden
-      await loadProfileHeader(CU.id);
+      const UID_TO_SHOW = VIEW_UID || CU.id;
+      const isMe = UID_TO_SHOW === CU.id;
+      // „Profil bearbeiten“ nur beim eigenen Profil
+      if(!isMe){
+        const editBtn = document.querySelector('.edit-profile-btn');
+        if(editBtn) editBtn.style.display = 'none';
+      }
 
-      // Posts laden (nur eigene)
-      await loadMyPosts(CU.id);
+      // Profil laden
+      await loadProfileHeader(UID_TO_SHOW);
+
+      // Posts laden (für UID_TO_SHOW)
+      await loadMyPosts(UID_TO_SHOW);
 
       // Zähler initial laden
-      await refreshCounts(CU.id);
+      await refreshCounts(UID_TO_SHOW);
 
       // Realtime → Zähler & Posts live
-      setupRealtime(CU.id);
+      setupRealtime(UID_TO_SHOW);
     });
 
     function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
