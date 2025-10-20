@@ -335,6 +335,14 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       .subscribe();
   }catch(e){ console.warn('Realtime DMs nicht aktiv?', e); }
 
+  // Realtime: Notifications → Nav-Badge sofort aktualisieren
+  try{
+    sb.channel('notif_'+CURRENT_USER.id)
+      .on('postgres_changes', {event:'*', schema:'public', table:'notifications', filter:`owner_id=eq.${CURRENT_USER.id}`}, async ()=>{
+        await setNavBadge();
+      })
+      .subscribe();
+  }catch(e){ console.warn('Realtime Notifications nicht aktiv?', e); }
 
   document.getElementById('foryouBtn')?.addEventListener('click', ()=>location.href='home.html');
   document.getElementById('followingBtn')?.addEventListener('click', ()=>location.href='following.html');
