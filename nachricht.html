@@ -37,31 +37,367 @@
     }
   </script>
   <style>
-    body{background:#fafafa}
-    .wrap{max-width:980px;margin:80px auto 90px;display:grid;grid-template-columns:320px 1fr;gap:14px;padding:0 16px}
-    .panel{background:#fff;border:1px solid #dbdbdb;border-radius:12px;overflow:hidden}
-    .panel-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid #efefef;background:#fafafa}
-    .panel-head h3{margin:0;font-size:16px}
-    .threads{max-height:calc(100vh - 220px);overflow:auto}
-    .thread{display:grid;grid-template-columns:56px 1fr auto;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid #efefef;cursor:pointer}
-    .thread:hover{background:#fafafa}
-    .ava{width:48px;height:48px;border-radius:50%;object-fit:cover;border:1px solid #ddd}
-    .t-meta{display:flex;flex-direction:column}
-    .t-uname{font-weight:700}
-    .t-last{color:#666;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:360px}
-    .t-badge{min-width:20px;height:20px;border-radius:10px;background:#ed4956;color:#fff;display:none;align-items:center;justify-content:center;font-size:12px;padding:0 6px}
-    .t-badge.show{display:flex}
-    .chat{display:flex;flex-direction:column;height:calc(100vh - 220px)}
-    .chat-list{flex:1;overflow:auto;padding:12px}
-    .msg{max-width:75%;margin-bottom:8px;padding:8px 12px;border-radius:12px;border:1px solid #dbdbdb;word-wrap:break-word}
-    .from-me{margin-left:auto;background:#e8f3ff;border-color:#cfe7ff}
-    .from-other{margin-right:auto;background:#fff}
-    .chat-input{display:flex;gap:8px;padding:10px;border-top:1px solid #efefef;background:#fafafa}
-    .chat-input input{flex:1;border:1px solid #dbdbdb;border-radius:10px;padding:10px 12px}
-    .chat-input button{border:none;background:#0095f6;color:#fff;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
-    .tools{display:flex;gap:8px;align-items:center}
-    .tools .btn{border:1px solid #dbdbdb;background:#fff;border-radius:8px;padding:6px 10px;cursor:pointer;font-weight:600}
-    @media(max-width:900px){ .wrap{grid-template-columns:1fr} }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+    }
+
+    .wrap {
+      max-width: 1200px;
+      margin: 80px auto 90px;
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 20px;
+      padding: 0 20px;
+    }
+
+    .panel {
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+      display: flex;
+      flex-direction: column;
+      transition: box-shadow 0.3s ease;
+    }
+
+    .panel:hover {
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.12);
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid #f0f2f5;
+      background: linear-gradient(135deg, #ffffff 0%, #f8f9fb 100%);
+    }
+
+    .panel-head h3 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+
+    .threads {
+      max-height: calc(100vh - 220px);
+      overflow-y: auto;
+      flex: 1;
+      scrollbar-width: thin;
+      scrollbar-color: #d0d0d0 transparent;
+    }
+
+    .threads::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .threads::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .threads::-webkit-scrollbar-thumb {
+      background: #d0d0d0;
+      border-radius: 3px;
+    }
+
+    .threads::-webkit-scrollbar-thumb:hover {
+      background: #b0b0b0;
+    }
+
+    .thread {
+      display: grid;
+      grid-template-columns: 56px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 16px;
+      cursor: pointer;
+      border-bottom: 1px solid #f5f5f5;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .thread:hover {
+      background: #f8f9fb;
+      padding-left: 20px;
+    }
+
+    .thread::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: linear-gradient(180deg, #0095f6, #00d4ff);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .thread:hover::before {
+      opacity: 1;
+    }
+
+    .ava {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #e0e0e0;
+      transition: transform 0.2s ease;
+    }
+
+    .thread:hover .ava {
+      transform: scale(1.05);
+    }
+
+    .t-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .t-uname {
+      font-weight: 700;
+      color: #1a1a1a;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .t-last {
+      color: #888;
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    .t-badge {
+      min-width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+      color: #fff;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 0 6px;
+      box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+    }
+
+    .t-badge.show {
+      display: flex;
+      animation: badgePulse 0.4s ease;
+    }
+
+    @keyframes badgePulse {
+      0% {
+        transform: scale(1.3);
+        opacity: 0;
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .chat {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 220px);
+    }
+
+    .chat-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      scrollbar-width: thin;
+      scrollbar-color: #d0d0d0 transparent;
+    }
+
+    .chat-list::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .chat-list::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .chat-list::-webkit-scrollbar-thumb {
+      background: #d0d0d0;
+      border-radius: 3px;
+    }
+
+    .msg {
+      max-width: 75%;
+      padding: 10px 16px;
+      border-radius: 18px;
+      word-wrap: break-word;
+      font-size: 14px;
+      line-height: 1.4;
+      animation: messageSlideIn 0.3s ease;
+    }
+
+    @keyframes messageSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .from-me {
+      margin-left: auto;
+      background: linear-gradient(135deg, #0095f6, #00d4ff);
+      color: #fff;
+      border: none;
+      box-shadow: 0 4px 12px rgba(0, 149, 246, 0.3);
+    }
+
+    .from-other {
+      margin-right: auto;
+      background: #f0f0f0;
+      color: #1a1a1a;
+      border: 1px solid #e0e0e0;
+    }
+
+    .chat-input {
+      display: flex;
+      gap: 10px;
+      padding: 14px 20px;
+      border-top: 1px solid #f0f2f5;
+      background: #fafbfc;
+    }
+
+    .chat-input input {
+      flex: 1;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 24px;
+      padding: 12px 16px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      font-family: inherit;
+    }
+
+    .chat-input input:focus {
+      outline: none;
+      border-color: #0095f6;
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(0, 149, 246, 0.1);
+    }
+
+    .chat-input input:disabled {
+      background: #f5f5f5;
+      color: #bbb;
+      cursor: not-allowed;
+    }
+
+    .chat-input button {
+      border: none;
+      background: linear-gradient(135deg, #0095f6, #00d4ff);
+      color: #fff;
+      border-radius: 24px;
+      padding: 12px 24px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 149, 246, 0.3);
+    }
+
+    .chat-input button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 149, 246, 0.4);
+    }
+
+    .chat-input button:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .chat-input button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .tools {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .tools .btn {
+      border: 1.5px solid #e0e0e0;
+      background: #f5f5f5;
+      border-radius: 8px;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      transition: all 0.3s ease;
+      color: #1a1a1a;
+    }
+
+    .tools .btn:hover:not(:disabled) {
+      background: #0095f6;
+      color: #fff;
+      border-color: #0095f6;
+    }
+
+    .tools .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .empty-state {
+      padding: 40px 20px;
+      color: #999;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    @media(max-width: 900px) {
+      .wrap {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .msg {
+        max-width: 85%;
+      }
+
+      .panel {
+        max-height: 600px;
+      }
+
+      .chat {
+        height: auto;
+        max-height: 600px;
+      }
+
+      .chat-list {
+        max-height: 400px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -180,7 +516,7 @@
         card.innerHTML = `
           <img class="ava" src="${p.avatar}" alt="">
           <div class="t-meta">
-            <div class="t-uname">@${escape(p.username)} ${p.display? '· '+escape(p.display):''}</div>
+            <div class="t-uname">${escape(p.display || p.username)}</div>
             <div class="t-last">${escape(last)}</div>
           </div>
           <div class="t-badge ${unread>0?'show':''}">${unread>99?'99+':unread||''}</div>
@@ -190,13 +526,22 @@
       }
 
       if(order.length===0){
-        list.innerHTML = `<div style="padding:14px;color:#8e8e8e">Keine Chats. Suche einen Nutzer und schreibe ihm.</div>`;
+        list.innerHTML = `<div class="empty-state"><i class="fas fa-comments" style="font-size:32px;margin-bottom:12px;opacity:0.3"></i><p>Keine Chats vorhanden</p><p style="font-size:12px;margin-top:8px">Suche einen Nutzer und starte einen Chat</p></div>`;
       }
     }
 
     async function openChat(otherId, pInfo){
       CURRENT_OTHER = otherId;
-      document.getElementById('chatTitle').textContent = '@'+(pInfo?.username || otherId.slice(0,8));
+      const displayName = pInfo?.display || pInfo?.username || otherId.slice(0,8);
+      document.getElementById('chatTitle').textContent = displayName;
+      
+      // Speichere die Profilinformationen im LocalStorage
+      localStorage.setItem('currentChatInfo_' + otherId, JSON.stringify({
+        display: pInfo?.display || '',
+        username: pInfo?.username || otherId.slice(0,8),
+        avatar: pInfo?.avatar || ''
+      }));
+      
       document.getElementById('msgInput').disabled = false;
       document.getElementById('sendBtn').disabled = false;
       document.getElementById('markReadBtn').disabled = false;
@@ -264,8 +609,10 @@
         return;
       }
       inp.value='';
-      // Realtime sorgt fürs Nachladen; fallback:
-      // await renderChat(toId);
+      // Seite wird nach erfolgreichem Versenden neu geladen und bleibt im Chat
+      setTimeout(() => {
+        location.href = '?uid=' + toId;
+      }, 500);
     }
 
     /* --- startNewChat: akzeptiert UUID oder @username --- */
@@ -339,7 +686,32 @@
       }
 
       // Optional: Direkt mit einer UUID öffnen (?uid=<uuid>)
-      if(preselect){ openChat(preselect, null); }
+      if(preselect){ 
+        // Versuche gespeicherte Infos zu laden
+        const savedInfo = localStorage.getItem('currentChatInfo_' + preselect);
+        let pInfo = null;
+        if(savedInfo){
+          try{
+            pInfo = JSON.parse(savedInfo);
+          }catch(e){ console.warn('Parse error', e); }
+        }
+        
+        // Falls keine Infos im LocalStorage, lade sie von der DB
+        if(!pInfo){
+          const { data: p } = await sb.from('profiles')
+            .select('username,display_name,avatar_url,avatar_path')
+            .eq('id', preselect).maybeSingle();
+          if(p){
+            pInfo = {
+              username: p.username || preselect.slice(0,8),
+              display: p.display_name || '',
+              avatar: p.avatar_url || (p.avatar_path ? publicUrl(p.avatar_path) : null)
+            };
+          }
+        }
+        
+        openChat(preselect, pInfo); 
+      }
     })();
   </script>
 </body>
