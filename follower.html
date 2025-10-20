@@ -114,13 +114,13 @@
         row.innerHTML = `
           <img class="ava" src="${u.avatar || 'assets/img/default-avatar.png'}" alt="${u.username}">
           <div class="info">
-            <div class="uname">@${u.username}</div>
+            <a class="uname" href="homepage.html?uid=${encodeURIComponent(u.id)}">@${u.username}</a>
             <div class="dname">${u.displayName || ''}</div>
           </div>
           <button class="btn btn-plain" title="Zurück folgen">Folgen</button>
         `;
         // Profil öffnen
-        row.addEventListener('click', (e)=>{ if(e.target.tagName.toLowerCase()==='button') return; window.location.href='profile.html?uid='+encodeURIComponent(u.id); });
+        row.addEventListener('click', (e)=>{ if(e.target.tagName.toLowerCase()==='button') return; window.location.href='homepage.html?uid='+encodeURIComponent(u.id); });
         // Folge zurück
         row.querySelector('button').addEventListener('click', async (e)=>{
           e.stopPropagation();

@@ -226,7 +226,6 @@ function setupCreate(currentUserId){
   const charCount = document.getElementById('charCount');
   const msgEl = document.getElementById('uploadMsg');
 
-  dropZone.addEventListener('click', ()=> fileInput.click());
   fileInput.addEventListener('change', onFile);
 
   dropZone.addEventListener('dragover', (e)=>{ e.preventDefault(); dropZone.style.background='#fafafa'; });
