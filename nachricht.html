@@ -12,6 +12,29 @@
     const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbWxwcnNneGdybnpvcXZneXF6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDMyMDk4NiwiZXhwIjoyMDc1ODk2OTg2fQ.rWp3zL2V37X76_PdQAq-pw4uSzpOIyeQ9l3bjEC7tCM";
     window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     function publicUrl(path){ return sb.storage.from('images').getPublicUrl(path).data.publicUrl; }
+
+    /* --- Hilfsfunktionen: Username -> UUID auflösen --- */
+    function isUUID(v){
+      return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v||"").trim());
+    }
+    async function resolveUserIdByUsername(username){
+      const u = String(username||"").trim().replace(/^@/,"");
+      if(!u) return null;
+      const { data, error } = await sb
+        .from('profiles')
+        .select('id')
+        .eq('username', u)
+        .limit(1)
+        .maybeSingle();
+      if(error){ console.warn('resolveUserIdByUsername', error); }
+      return data?.id || null;
+    }
+    async function ensureUserId(val){
+      if(!val) return null;
+      const s = String(val).trim();
+      if(isUUID(s)) return s;
+      return await resolveUserIdByUsername(s);
+    }
   </script>
   <style>
     body{background:#fafafa}
@@ -94,7 +117,8 @@
   <script>
     let CU=null, CURRENT_OTHER=null, RTM=null;
     const qs = new URLSearchParams(location.search);
-    const preselect = qs.get('uid'); // optional: direkt mit user starten (z.B. von Profil)
+    const preselect = qs.get('uid'); // optional: direkt mit user starten (UUID)
+    // zusätzlich: ?u=@username oder ?u=username wird unten unterstützt
 
     function escape(s){ return String(s||'').replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
 
@@ -218,32 +242,68 @@
       await loadThreads();
     }
 
+    /* --- sendCurrent: sendet IMMER an eine UUID (username wird aufgelöst) --- */
     async function sendCurrent(){
       const inp = document.getElementById('msgInput');
       const txt = (inp.value||'').trim();
       if(!txt || !CURRENT_OTHER) return;
+
+      const toId = await ensureUserId(CURRENT_OTHER);
+      if(!toId){
+        alert('Empfänger konnte nicht aufgelöst werden.');
+        return;
+      }
+
       const { error } = await sb.from('messages').insert({
-        from_user_id: CU.id, to_user_id: CURRENT_OTHER, text: txt
+        from_user_id: CU.id,
+        to_user_id: toId,
+        text: txt
       });
-      if(error){ alert('Konnte nicht senden: '+(error.message||error)); return; }
+      if(error){
+        alert('Konnte nicht senden: ' + (error.message || error));
+        return;
+      }
       inp.value='';
       // Realtime sorgt fürs Nachladen; fallback:
-      // await renderChat(CURRENT_OTHER);
+      // await renderChat(toId);
     }
 
-    function startNewChat(){
-      const uid = prompt('User-ID des Empfängers eingeben (oder @username in Suche öffnen):');
-      if(!uid) return;
-      openChat(uid, { username: uid.slice(0,8) });
+    /* --- startNewChat: akzeptiert UUID oder @username --- */
+    async function startNewChat(){
+      const input = prompt('Empfänger eingeben: UUID oder @username');
+      if(!input) return;
+
+      const otherId = await ensureUserId(input);
+      if(!otherId){
+        alert('Kein Nutzer gefunden zu: ' + input);
+        return;
+      }
+
+      let pInfo = null;
+      const { data: p } = await sb.from('profiles')
+        .select('username,display_name,avatar_url,avatar_path')
+        .eq('id', otherId).maybeSingle();
+
+      if(p){
+        pInfo = {
+          username: p.username || otherId.slice(0,8),
+          display: p.display_name || '',
+          avatar: p.avatar_url || (p.avatar_path ? publicUrl(p.avatar_path) : null)
+        };
+      }
+
+      openChat(otherId, pInfo);
     }
 
     document.getElementById('sendBtn').addEventListener('click', sendCurrent);
     document.getElementById('msgInput').addEventListener('keydown', (e)=>{ if(e.key==='Enter') sendCurrent(); });
     document.getElementById('markReadBtn').addEventListener('click', async ()=>{
       if(!CURRENT_OTHER) return;
+      const toId = await ensureUserId(CURRENT_OTHER);
+      if(!toId) return;
       await sb.from('messages').update({ read:true })
-        .eq('to_user_id', CU.id).eq('from_user_id', CURRENT_OTHER).eq('read', false);
-      await renderChat(CURRENT_OTHER);
+        .eq('to_user_id', CU.id).eq('from_user_id', toId).eq('read', false);
+      await renderChat(toId);
     });
 
     (async function init(){
@@ -259,7 +319,26 @@
           .subscribe();
       }catch(e){ console.warn('RTM global', e); }
 
-      // Optional: Direkt mit einem User öffnen (?uid=...)
+      // Optional: Direkt mit Username öffnen (?u=@username oder ?u=username)
+      const uParam = qs.get('u');
+      if(uParam && !preselect){
+        const otherId = await ensureUserId(uParam);
+        if(otherId){
+          const { data: p } = await sb.from('profiles')
+            .select('username,display_name,avatar_url,avatar_path')
+            .eq('id', otherId).maybeSingle();
+          const pInfo = p ? {
+            username: p.username || otherId.slice(0,8),
+            display: p.display_name || '',
+            avatar: p.avatar_url || (p.avatar_path ? publicUrl(p.avatar_path) : null)
+          } : null;
+          await openChat(otherId, pInfo);
+        }else{
+          alert('Nutzer nicht gefunden: ' + uParam);
+        }
+      }
+
+      // Optional: Direkt mit einer UUID öffnen (?uid=<uuid>)
       if(preselect){ openChat(preselect, null); }
     })();
   </script>
