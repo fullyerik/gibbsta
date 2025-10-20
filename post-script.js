@@ -2,8 +2,7 @@
 
 /* ===== Modus & Helpers ===== */
 const qs = new URLSearchParams(location.search);
-const POST_ID = qs.get("id");
-const POST_ID_NUM = POST_ID ? Number(POST_ID) : null; // ← bigint-kompatibel
+const POST_ID = qs.get("id"); // <-- UUID-String (nicht in Zahl umwandeln!)
 
 function publicUrl(path){ return sb.storage.from('images').getPublicUrl(path).data.publicUrl; }
 function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -27,9 +26,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const user = (await sb.auth.getUser()).data.user;
   if(!user){ location.href='index.html'; return; }
 
-  if(POST_ID_NUM){
+  if(POST_ID){
     document.getElementById('viewSection').classList.remove('hidden');
-    await loadPostView(user.id, POST_ID_NUM);
+    await loadPostView(user.id, POST_ID); // UUID
   }else{
     document.getElementById('createSection').classList.remove('hidden');
     setupCreate(user.id);
@@ -37,16 +36,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 /* ===== VIEW ===== */
-async function loadPostView(currentUserId, pidNum){
-  // Post laden (id ist bigint → Zahl verwenden)
-  const { data: rows, error } = await sb
+async function loadPostView(currentUserId, pid){
+  // Post laden (id ist UUID → String verwenden)
+  const { data: post, error } = await sb
     .from('posts')
     .select('id,user_id,caption,image_path,created_at')
-    .eq('id', pidNum)
-    .range(0,0);
+    .eq('id', pid)
+    .single();
 
-  if(error || !rows || !rows[0]){ alert('Beitrag nicht gefunden.'); location.href='home.html'; return; }
-  const post = rows[0];
+  if(error || !post){ alert('Beitrag nicht gefunden.'); location.href='home.html'; return; }
 
   // Owner-Profil (Username/Avatar)
   let uname = post.user_id.slice(0,8), avatar = 'https://via.placeholder.com/80/dbdbdb/262626?text=+';
@@ -54,7 +52,7 @@ async function loadPostView(currentUserId, pidNum){
     .from('profiles')
     .select('username, avatar_url, avatar_path')
     .eq('id', post.user_id)
-    .range(0,0);
+    .limit(1);
   if(prof && prof[0]){
     uname = prof[0].username || uname;
     avatar = prof[0].avatar_url || (prof[0].avatar_path ? publicUrl(prof[0].avatar_path) : avatar);
@@ -90,7 +88,7 @@ async function loadPostView(currentUserId, pidNum){
   }catch(e){ console.warn('Realtime nicht aktiv?', e); }
 
   // Like (lokal)
-  document.getElementById('likeBtn').onclick = ()=>{
+  document.getElementById('likeBtn').onclick = async ()=>{
     let cnt = likeCountOf(post.id);
     if(isLiked(currentUserId, post.id)){
       const arr = getLikeStore(currentUserId);
@@ -108,6 +106,20 @@ async function loadPostView(currentUserId, pidNum){
         cnt = cnt+1;
         setLikeCount(post.id, cnt);
         likeIcon.classList.remove('fa-regular'); likeIcon.classList.add('fa-solid');
+
+        // Mitteilung an Post-Besitzer in DB (falls Liker != Owner)
+        try{
+          if (currentUserId && currentUserId !== post.user_id) {
+            await sb.from('notifications').insert({
+              owner_id: post.user_id,
+              from_user_id: currentUserId,
+              type: 'like',
+              post_id: post.id
+            });
+          }
+        }catch(e){
+          console.warn('Notif insert failed', e);
+        }
       }
     }
     document.getElementById('likesCount').textContent = String(cnt);
@@ -123,18 +135,36 @@ async function loadPostView(currentUserId, pidNum){
     saveIcon.classList.toggle('fa-regular', already);
   };
 
-  // Kommentar senden → DB
+  // Kommentar senden → DB (+ Notification)
   document.getElementById('commentSend').onclick = async ()=>{
     const inp = document.getElementById('commentInput');
     const text = (inp.value||'').trim();
     if(!text) return;
 
     try{
-      const payload = { post_id: post.id, user_id: currentUserId, text };
-      const { error: insErr } = await sb.from('comments').insert(payload);
+      // Kommentar speichern (post.id ist UUID)
+      const { error: insErr } = await sb.from('comments').insert({
+        post_id: post.id,
+        user_id: currentUserId,
+        text
+      });
       if(insErr) throw insErr;
+
+      // Notification für Post-Besitzer (nicht bei eigenem Post)
+      try{
+        if (currentUserId && currentUserId !== post.user_id) {
+          await sb.from('notifications').insert({
+            owner_id: post.user_id,
+            from_user_id: currentUserId,
+            type: 'comment',
+            post_id: post.id,
+            comment: text
+          });
+        }
+      }catch(e){ console.warn('Notif insert failed', e); }
+
       inp.value='';
-      // Realtime aktualisiert; sonst: await renderCommentsFromDB(post.id);
+      // Realtime rendert nach; bei Bedarf: await renderCommentsFromDB(post.id);
     }catch(e){
       console.error(e);
       alert('Kommentar konnte nicht gespeichert werden: ' + (e.message || e));
