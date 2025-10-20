@@ -1,72 +1,54 @@
 "use strict";
 
-/* Modus */
+/* ===== Modus & Helpers ===== */
 const qs = new URLSearchParams(location.search);
 const POST_ID = qs.get("id");
+const POST_ID_NUM = POST_ID ? Number(POST_ID) : null; // ← bigint-kompatibel
 
 function publicUrl(path){ return sb.storage.from('images').getPublicUrl(path).data.publicUrl; }
+function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+/* Likes & Saves bleiben lokal */
 const storage = {
   key(scope, id){ return `${scope}_${id}`; },
   read(scope, id){ try{ return JSON.parse(localStorage.getItem(this.key(scope,id))||'[]'); }catch{ return []; } },
   write(scope,id,arr){ localStorage.setItem(this.key(scope,id), JSON.stringify(arr)); }
 };
-
 function likeCountOf(postId){ return storage.read('like_counts', postId)[0]?.count || 0; }
 function setLikeCount(postId, count){ storage.write('like_counts', postId, [{count}]); }
-
-function getComments(postId){ return storage.read('comments', postId); }
-function setComments(postId, arr){ storage.write('comments', postId, arr); }
-
 function getLikeStore(uid){ return storage.read('likes', uid); }
 function setLikeStore(uid, arr){ storage.write('likes', uid, arr); }
 function getSaveStore(uid){ return storage.read('saved', uid); }
 function setSaveStore(uid, arr){ storage.write('saved', uid, arr); }
-
 function isLiked(uid, postId){ return getLikeStore(uid).some(x=>x.postId===postId); }
 
-/* Idempotente Guards (pro User) */
-function ensureLiked(uid, postId){
-  const arr = getLikeStore(uid);
-  if(arr.some(x=>x.postId===postId)) return false;
-  arr.push({ postId, at: Date.now() });
-  setLikeStore(uid, arr);
-  return true;
-}
-function ensureUnliked(uid, postId){
-  const arr = getLikeStore(uid);
-  if(!arr.some(x=>x.postId===postId)) return false;
-  setLikeStore(uid, arr.filter(x=>x.postId!==postId));
-  return true;
-}
-
-function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
+/* ===== Init ===== */
 document.addEventListener('DOMContentLoaded', async () => {
   const user = (await sb.auth.getUser()).data.user;
   if(!user){ location.href='index.html'; return; }
 
-  if(POST_ID){
+  if(POST_ID_NUM){
     document.getElementById('viewSection').classList.remove('hidden');
-    await loadPostView(user.id, POST_ID);
+    await loadPostView(user.id, POST_ID_NUM);
   }else{
     document.getElementById('createSection').classList.remove('hidden');
     setupCreate(user.id);
   }
 });
 
-/* ---------- VIEW ---------- */
-async function loadPostView(currentUserId, pid){
+/* ===== VIEW ===== */
+async function loadPostView(currentUserId, pidNum){
+  // Post laden (id ist bigint → Zahl verwenden)
   const { data: rows, error } = await sb
     .from('posts')
     .select('id,user_id,caption,image_path,created_at')
-    .eq('id', pid)
+    .eq('id', pidNum)
     .range(0,0);
 
   if(error || !rows || !rows[0]){ alert('Beitrag nicht gefunden.'); location.href='home.html'; return; }
   const post = rows[0];
 
-  // Owner-Profil
+  // Owner-Profil (Username/Avatar)
   let uname = post.user_id.slice(0,8), avatar = 'https://via.placeholder.com/80/dbdbdb/262626?text=+';
   const { data: prof } = await sb
     .from('profiles')
@@ -78,7 +60,7 @@ async function loadPostView(currentUserId, pid){
     avatar = prof[0].avatar_url || (prof[0].avatar_path ? publicUrl(prof[0].avatar_path) : avatar);
   }
 
-  // UI
+  // UI füllen
   const imgUrl = publicUrl(post.image_path);
   const liked = isLiked(currentUserId, post.id);
   const saved = getSaveStore(currentUserId).some(x=>x.postId===post.id);
@@ -96,23 +78,33 @@ async function loadPostView(currentUserId, pid){
   const saveIcon = document.getElementById('saveBtn').querySelector('i');
   saveIcon.classList.toggle('fa-solid', saved);
   saveIcon.classList.toggle('fa-regular', !saved);
-
   document.getElementById('likesCount').textContent = likeCount;
 
-  renderComments(post.id);
+  // Kommentare laden (DB) & Realtime
+  await renderCommentsFromDB(post.id);
+  try{
+    sb.channel('comments_post_'+post.id)
+      .on('postgres_changes', { event:'*', schema:'public', table:'comments', filter:`post_id=eq.${post.id}` },
+        () => renderCommentsFromDB(post.id))
+      .subscribe();
+  }catch(e){ console.warn('Realtime nicht aktiv?', e); }
 
-  // Like (idempotent)
+  // Like (lokal)
   document.getElementById('likeBtn').onclick = ()=>{
     let cnt = likeCountOf(post.id);
-
     if(isLiked(currentUserId, post.id)){
-      if(ensureUnliked(currentUserId, post.id)){
+      const arr = getLikeStore(currentUserId);
+      if(arr.some(x=>x.postId===post.id)){
+        setLikeStore(currentUserId, arr.filter(x=>x.postId!==post.id));
         cnt = Math.max(0, cnt-1);
         setLikeCount(post.id, cnt);
         likeIcon.classList.remove('fa-solid'); likeIcon.classList.add('fa-regular');
       }
     }else{
-      if(ensureLiked(currentUserId, post.id)){
+      const arr = getLikeStore(currentUserId);
+      if(!arr.some(x=>x.postId===post.id)){
+        arr.push({ postId: post.id, at: Date.now() });
+        setLikeStore(currentUserId, arr);
         cnt = cnt+1;
         setLikeCount(post.id, cnt);
         likeIcon.classList.remove('fa-regular'); likeIcon.classList.add('fa-solid');
@@ -121,7 +113,7 @@ async function loadPostView(currentUserId, pid){
     document.getElementById('likesCount').textContent = String(cnt);
   };
 
-  // Save
+  // Save (lokal)
   document.getElementById('saveBtn').onclick = ()=>{
     const already = getSaveStore(currentUserId).some(x=>x.postId===post.id);
     let arr = getSaveStore(currentUserId).filter(x=>x.postId!==post.id);
@@ -131,42 +123,70 @@ async function loadPostView(currentUserId, pid){
     saveIcon.classList.toggle('fa-regular', already);
   };
 
-  // Kommentare
-  document.getElementById('commentSend').onclick = ()=>{
+  // Kommentar senden → DB
+  document.getElementById('commentSend').onclick = async ()=>{
     const inp = document.getElementById('commentInput');
     const text = (inp.value||'').trim();
     if(!text) return;
-    const list = getComments(post.id);
-    const fromUser = getViewerName() || 'user';
-    list.push({ fromUser, text, at: Date.now() });
-    setComments(post.id, list);
-    inp.value='';
-    renderComments(post.id);
-  };
 
-
-  function getViewerName(){
     try{
-      const cu = JSON.parse(sessionStorage.getItem('currentUser')||'{}');
-      if(cu.username) return cu.username;
-      if(cu.email) return cu.email.split('@')[0];
-    }catch{}
-    return null;
-  }
+      const payload = { post_id: post.id, user_id: currentUserId, text };
+      const { error: insErr } = await sb.from('comments').insert(payload);
+      if(insErr) throw insErr;
+      inp.value='';
+      // Realtime aktualisiert; sonst: await renderCommentsFromDB(post.id);
+    }catch(e){
+      console.error(e);
+      alert('Kommentar konnte nicht gespeichert werden: ' + (e.message || e));
+    }
+  };
 }
 
-function renderComments(pid){
+/* ===== Kommentare (DB) ===== */
+async function renderCommentsFromDB(postId){
   const wrap = document.getElementById('commentsList');
   wrap.innerHTML = '';
-  const list = getComments(pid);
-  list.forEach(c=>{
+
+  // 1) Kommentare holen
+  const { data: comments, error } = await sb
+    .from('comments')
+    .select('id, user_id, text, created_at')
+    .eq('post_id', postId)
+    .order('created_at', { ascending: true });
+
+  if(error){
+    console.error(error);
+    wrap.textContent = 'Fehler beim Laden der Kommentare.';
+    return;
+  }
+  if(!comments || comments.length === 0) return;
+
+  // 2) Usernames dazu in einem Rutsch
+  const uniqueIds = [...new Set(comments.map(c => c.user_id))];
+  let nameMap = {};
+  if(uniqueIds.length){
+    const { data: profs } = await sb
+      .from('profiles')
+      .select('id, username, email')
+      .in('id', uniqueIds);
+    (profs || []).forEach(p=>{
+      const uname = (p.username && p.username.trim())
+        ? p.username.trim()
+        : (p.email ? p.email.split('@')[0] : (p.id ? p.id.slice(0,8) : 'user'));
+      nameMap[p.id] = uname;
+    });
+  }
+
+  // 3) Render
+  comments.forEach(c=>{
+    const uname = nameMap[c.user_id] || 'user';
     const el = document.createElement('div');
-    el.innerHTML = `<b>@${escapeHtml(c.fromUser)}</b> ${escapeHtml(c.text)}`;
+    el.innerHTML = `<b>@${escapeHtml(uname)}</b> ${escapeHtml(c.text)}`;
     wrap.appendChild(el);
   });
 }
 
-/* ---------- CREATE ---------- */
+/* ===== CREATE ===== */
 function setupCreate(currentUserId){
   const dropZone = document.getElementById('dropZone');
   const fileInput = document.getElementById('fileInput');

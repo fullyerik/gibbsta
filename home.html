@@ -18,22 +18,18 @@
     function publicUrl(path){return sb.storage.from('images').getPublicUrl(path).data.publicUrl;}
   </script>
 
-  <!-- kleines Extra-CSS nur fürs Overlay/Badge -->
   <style>
     .top-nav{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#fff;border-bottom:1px solid #dbdbdb;z-index:200}
     .nav-logo{height:38px}
     .notifications{position:relative;background:none;border:none;cursor:pointer;font-size:20px;margin:0 6px}
     #navNotifBadge{position:absolute;top:-6px;right:-8px;background:#ed4956;color:#fff;font-size:11px;border-radius:10px;min-width:18px;height:18px;display:none;align-items:center;justify-content:center;padding:0 5px}
-
+#navMsgBadge{position:absolute;top:-6px;right:-8px;background:#ed4956;color:#fff;font-size:11px;border-radius:10px;min-width:18px;height:18px;display:none;align-items:center;justify-content:center;padding:0 5px}
     .content{max-width:760px;margin:80px auto 110px;padding:0 16px}
-
     .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #dbdbdb;padding:14px 0;z-index:100}
     .nav-container{max-width:500px;margin:0 auto;display:flex;justify-content:space-around;align-items:center}
     .nav-item{background:none;border:none;cursor:pointer;width:48px;height:48px;display:flex;align-items:center;justify-content:center;border-radius:50%}
     .plus-btn{width:35px;height:35px;border:2px solid #262626;border-radius:4px}
     .nav-item svg{width:24px;height:24px;color:#262626}
-
-    /* Overlay */
     #notifOverlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:300}
     #notifOverlay.open{display:flex}
     .sheet{width:min(520px,92vw);max-height:80vh;overflow:auto;background:#fff;border:1px solid #dbdbdb;border-radius:14px}
@@ -51,17 +47,19 @@
 </head>
 <body>
 
-  <!-- Header -->
   <header class="top-nav">
     <div class="nav-left">
       <img class="nav-logo" src="https://i.ibb.co/Q7mG5wr3/Gibbsta-Logo-Haupt.png" alt="Gibbsta">
     </div>
 
     <div class="nav-center">
-      <!-- GLOCKE: IDs müssen genau so heißen -->
       <button id="notifBtn" class="notifications" title="Mitteilungen">
         <i class="fa-regular fa-bell"></i>
         <span id="navNotifBadge">0</span>
+      </button>
+      <button id="msgBtn" class="notifications" title="Nachrichten" onclick="location.href='nachricht.html'">
+        <i class="fa-regular fa-message"></i>
+        <span id="navMsgBadge">0</span>
       </button>
       <button class="notifications" title="Favoriten" onclick="location.href='favorite.html'">
         <i class="fa-regular fa-heart"></i>
@@ -75,7 +73,6 @@
     </div>
   </header>
 
-  <!-- Inhalt -->
   <main class="content">
     <div id="postsContainer"></div>
     <div class="no-posts" id="emptyFeed" style="display:none">
@@ -86,7 +83,6 @@
     </div>
   </main>
 
-  <!-- Bottom-Navigation -->
   <nav class="bottom-nav">
     <div class="nav-container">
       <button class="nav-item" onclick="location.href='home.html'" title="Home">
@@ -104,7 +100,6 @@
     </div>
   </nav>
 
-  <!-- MITTEILUNGS-OVERLAY (wichtig: IDs!) -->
   <div id="notifOverlay" aria-hidden="true">
     <div class="sheet">
       <div class="sheet-head">
@@ -119,7 +114,6 @@
     </div>
   </div>
 
-  <!-- Feed + Notifications-Logik -->
   <script src="home-script.js"></script>
 </body>
 </html>

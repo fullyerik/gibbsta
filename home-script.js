@@ -76,6 +76,47 @@ async function setNavBadge(){
   if(c>0){ el.style.display='flex'; el.textContent = c>99?'99+':String(c); } else { el.style.display='none'; }
 }
 
+/* --- Direktnachrichten (DM) über Supabase --- */
+const dm = {
+  async send({ from, to, text }) {
+    if(!from || !to || !text?.trim()) return;
+    const { error } = await sb.from('messages').insert({
+      from_user_id: from, to_user_id: to, text: text.trim()
+    });
+    if(error) console.error('dm.send', error);
+  },
+
+  async unreadCount(uid){
+    const { count, error } = await sb
+      .from('messages')
+      .select('*', { count:'exact', head:true })
+      .eq('to_user_id', uid)
+      .eq('read', false);
+    return error ? 0 : (count || 0);
+  },
+
+  async markThreadRead(me, otherId){
+    const { error } = await sb
+      .from('messages')
+      .update({ read: true })
+      .eq('to_user_id', me)
+      .eq('from_user_id', otherId)
+      .eq('read', false);
+    if(error) console.error('dm.markThreadRead', error);
+  }
+};
+
+/* Badge für Nachrichten in der Topbar */
+async function setMsgBadge(){
+  if(!CURRENT_USER) return;
+  const c = await dm.unreadCount(CURRENT_USER.id);
+  const el = document.getElementById('navMsgBadge');
+  if(!el) return;
+  if(c>0){ el.style.display='flex'; el.textContent = c>99?'99+':String(c); } else { el.style.display='none'; }
+}
+
+
+
 /* -------- Profilinfos (Username + Avatar) holen (Batch) -------- */
 async function fetchProfilesMap(userIds){
   if(!userIds || userIds.length===0) return { byId:{}, fallbackAvatar:'https://via.placeholder.com/48/dbdbdb/262626?text=+' };
@@ -281,8 +322,19 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   CURRENT_USER = await getUser();
   if(!CURRENT_USER) return;
 
-  await setNavBadge();     // Badge initial (await!)
+  await setNavBadge();
+  await setMsgBadge();     // Badge initial (await!)
   await loadFeed();        // Feed laden
+
+  // Realtime: neue Nachrichten an mich -> Nachrichten-Badge aktualisieren
+  try{
+    sb.channel('dm_'+CURRENT_USER.id)
+      .on('postgres_changes', {event:'*', schema:'public', table:'messages', filter:`to_user_id=eq.${CURRENT_USER.id}`}, async ()=>{
+        await setMsgBadge();
+      })
+      .subscribe();
+  }catch(e){ console.warn('Realtime DMs nicht aktiv?', e); }
+
 
   document.getElementById('foryouBtn')?.addEventListener('click', ()=>location.href='home.html');
   document.getElementById('followingBtn')?.addEventListener('click', ()=>location.href='following.html');
