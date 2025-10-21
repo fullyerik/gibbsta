@@ -11,6 +11,137 @@ const storage = {
 };
 
 /* --- Notifications über Supabase --- */
+
+/* -------- DB Helpers for Likes & Saves (persistent) -------- */
+async function fetchUserLikesFor(postIds){
+  try{
+    const { data, error } = await sb.from('post_likes')
+      .select('post_id')
+      .eq('user_id', CURRENT_USER.id)
+      .in('post_id', postIds);
+    if(error) throw error;
+    return new Set((data||[]).map(r=>r.post_id));
+  }catch(e){
+    console.warn('fetchUserLikesFor failed, falling back to local', e);
+    return new Set(getLikeStore().map(x=>x.postId));
+  }
+}
+
+async function fetchUserSavesFor(postIds){
+  try{
+    const { data, error } = await sb.from('post_saves')
+      .select('post_id')
+      .eq('user_id', CURRENT_USER.id)
+      .in('post_id', postIds);
+    if(error) throw error;
+    return new Set((data||[]).map(r=>r.post_id));
+  }catch(e){
+    console.warn('fetchUserSavesFor failed, falling back to local', e);
+    return new Set(getSaveStore().map(x=>x.postId));
+  }
+}
+
+async function fetchLikeCounts(postIds){
+  try{
+    const { data, error } = await sb.from('post_likes')
+      .select('post_id')
+      .in('post_id', postIds);
+    if(error) throw error;
+    const map = new Map();
+    for(const row of (data||[])){
+      map.set(row.post_id, (map.get(row.post_id)||0)+1);
+    }
+    return map;
+  }catch(e){
+    console.warn('fetchLikeCounts failed, using local counts', e);
+    const map = new Map();
+    for(const id of postIds){
+      map.set(id, likeCountOf(id));
+    }
+    return map;
+  }
+}
+
+async function toggleLikeDB(postId, ownerId){
+  // Returns {liked:boolean, countDelta:+1|-1|0}
+  try{
+    const { data: existing, error: selErr } = await sb.from('post_likes')
+      .select('post_id')
+      .eq('post_id', postId)
+      .eq('user_id', CURRENT_USER.id)
+      .limit(1);
+    if(selErr) throw selErr;
+
+    if(existing && existing.length){
+      const { error: delErr } = await sb.from('post_likes')
+        .delete()
+        .eq('post_id', postId)
+        .eq('user_id', CURRENT_USER.id);
+      if(delErr) throw delErr;
+      return { liked: false, countDelta: -1 };
+    }else{
+      const { error: insErr } = await sb.from('post_likes')
+        .insert({ post_id: postId, user_id: CURRENT_USER.id });
+      if(insErr) throw insErr;
+      // Notification only on like (not on unlike)
+      try{
+        if (CURRENT_USER?.id && CURRENT_USER.id !== ownerId) {
+          await notif.push({
+            ownerId: ownerId,
+            type: 'like',
+            fromUserId: CURRENT_USER.id,
+            postId
+          });
+          await setNavBadge();
+        }
+      }catch(_){/*noop*/}
+      return { liked: true, countDelta: +1 };
+    }
+  }catch(e){
+    console.warn('toggleLikeDB failed, falling back to local', e);
+    // local fallback
+    const already = isLiked(postId);
+    if(already){
+      if(unlike(postId)){ return { liked:false, countDelta:-1 }; }
+      return { liked:false, countDelta:0 };
+    }else{
+      if(ensureLiked(postId)){ return { liked:true, countDelta:+1 }; }
+      return { liked:true, countDelta:0 };
+    }
+  }
+}
+
+async function toggleSaveDB(postId){
+  try{
+    const { data: existing, error: selErr } = await sb.from('post_saves')
+      .select('post_id')
+      .eq('post_id', postId)
+      .eq('user_id', CURRENT_USER.id)
+      .limit(1);
+    if(selErr) throw selErr;
+
+    if(existing && existing.length){
+      const { error: delErr } = await sb.from('post_saves')
+        .delete()
+        .eq('post_id', postId)
+        .eq('user_id', CURRENT_USER.id);
+      if(delErr) throw delErr;
+      return false;
+    }else{
+      const { error: insErr } = await sb.from('post_saves')
+        .insert({ post_id: postId, user_id: CURRENT_USER.id });
+      if(insErr) throw insErr;
+      return true;
+    }
+  }catch(e){
+    console.warn('toggleSaveDB failed, falling back to local', e);
+    const already = getSaveStore().some(x=>x.postId===postId);
+    let arr = getSaveStore().filter(x=>x.postId!==postId);
+    if(!already){ arr = [...getSaveStore(), {postId, at:Date.now()}]; }
+    setSaveStore(arr);
+    return !already;
+  }
+}
 const notif = {
   async push({ownerId, type, fromUserId, postId, comment}) {
     if(!ownerId || !fromUserId) return;
@@ -215,12 +346,19 @@ async function loadFeed(){
   }
 
   const { byId: profiles, fallbackAvatar } = await fetchProfilesMap(posts.map(p=>p.user_id));
+  const postIds = posts.map(p=>p.id);
+  const [likedSet, savedSet, likeCountMap] = await Promise.all([
+    fetchUserLikesFor(postIds),
+    fetchUserSavesFor(postIds),
+    fetchLikeCounts(postIds)
+  ]);
+
 
   const frag = document.createDocumentFragment();
   for(const p of posts){
-    const liked     = isLiked(p.id);
-    const saved     = getSaveStore().some(x=>x.postId===p.id);
-    const likeCount = likeCountOf(p.id);
+    const liked     = likedSet.has(p.id);
+    const saved     = savedSet.has(p.id);
+    const likeCount = likeCountMap.get(p.id) || 0;
     const comments  = getComments(p.id);
 
     const wrapper = document.createElement('div');
@@ -238,53 +376,30 @@ function wireInteractions(){
     const postId = card.dataset.id;
     const owner  = card.dataset.owner;
 
-    // Like (idempotent)
+    // Like (DB + Realtime)
     const likeBtn = card.querySelector('.like-btn');
     likeBtn?.addEventListener('click', async ()=>{
       const icon = likeBtn.querySelector('i');
       const countEl = card.querySelector('.likes-count');
-      let cnt = likeCountOf(postId);
+      let cnt = parseInt((countEl?.textContent||'0'), 10);
 
-      if(isLiked(postId)){
-        if(ensureUnliked(postId)){
-          cnt = Math.max(0, cnt-1);
-          setLikeCount(postId, cnt);
-          if(countEl) countEl.textContent = String(cnt);
-          icon.classList.remove('fa-solid'); icon.classList.add('fa-regular');
-        }
-      }else{
-        if(ensureLiked(postId)){
-          cnt = cnt+1;
-          setLikeCount(postId, cnt);
-          if(countEl) countEl.textContent = String(cnt);
-          icon.classList.remove('fa-regular'); icon.classList.add('fa-solid');
-
-          // DB-Mitteilung (falls nicht eigener Post)
-          if (CURRENT_USER?.id && CURRENT_USER.id !== owner) {
-            await notif.push({
-              ownerId: owner,
-              type: 'like',
-              fromUserId: CURRENT_USER.id,
-              postId
-            });
-            await setNavBadge();
-          }
-        }
+      const res = await toggleLikeDB(postId, owner);
+      if(res.countDelta){
+        cnt = Math.max(0, cnt + res.countDelta);
+        if(countEl) countEl.textContent = String(cnt);
       }
+      icon.classList.toggle('fa-solid', res.liked);
+      icon.classList.toggle('fa-regular', !res.liked);
     });
 
     // Speichern
     const saveBtn = card.querySelector('.save-post');
-    saveBtn?.addEventListener('click', ()=>{
+    saveBtn?.addEventListener('click', async ()=>{
       const icon = saveBtn.querySelector('i');
-      let arr = getSaveStore().filter(x=>x.postId!==postId);
-      const already = getSaveStore().some(x=>x.postId===postId);
-      if(!already){ arr = [...getSaveStore(), {postId, at:Date.now()}]; }
-      setSaveStore(arr);
-      icon.classList.toggle('fa-solid', !already);
-      icon.classList.toggle('fa-regular', already);
+      const nowSaved = await toggleSaveDB(postId);
+      icon.classList.toggle('fa-solid', nowSaved);
+      icon.classList.toggle('fa-regular', !nowSaved);
     });
-
     // Kommentare
     const commentBtn = card.querySelector('.comment-btn');
     commentBtn?.addEventListener('click', ()=> openPost(postId));
@@ -317,6 +432,27 @@ function wireInteractions(){
 function openPost(id){ location.href = `post.html?id=${encodeURIComponent(id)}`; }
 function openProfile(uid){ location.href = `homepage.html?uid=${encodeURIComponent(uid)}`; }
 
+/* --- Live-Update der Likes für einen einzelnen Post --- */
+async function updateLikeDisplay(postId){
+  try{
+    const [likedSet, likeCountMap] = await Promise.all([
+      fetchUserLikesFor([postId]),
+      fetchLikeCounts([postId])
+    ]);
+    const liked = likedSet.has(postId);
+    const cnt = likeCountMap.get(postId) || 0;
+    const card = document.querySelector(`.post[data-id="${postId}"]`);
+    if(!card) return;
+    const countEl = card.querySelector('.likes-count');
+    if(countEl) countEl.textContent = String(cnt);
+    const likeBtn = card.querySelector('.like-btn i');
+    if(likeBtn){
+      likeBtn.classList.toggle('fa-solid', liked);
+      likeBtn.classList.toggle('fa-regular', !liked);
+    }
+  }catch(e){ console.warn('updateLikeDisplay failed', e); }
+}
+
 /* -------- Init -------- */
 document.addEventListener('DOMContentLoaded', async ()=>{
   CURRENT_USER = await getUser();
@@ -334,6 +470,16 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       })
       .subscribe();
   }catch(e){ console.warn('Realtime DMs nicht aktiv?', e); }
+
+  // Realtime: Likes → Feed live synchronisieren
+  try{
+    sb.channel('likes_live_'+CURRENT_USER.id)
+      .on('postgres_changes', {event:'*', schema:'public', table:'post_likes'}, async (payload)=>{
+        const postId = (payload.new && payload.new.post_id) || (payload.old && payload.old.post_id);
+        if(postId) updateLikeDisplay(postId);
+      })
+      .subscribe();
+  }catch(e){ console.warn('Realtime Likes nicht aktiv?', e); }
 
   // Realtime: Notifications → Nav-Badge sofort aktualisieren
   try{
