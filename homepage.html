@@ -303,8 +303,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div class="post-caption">${safeCaption}</div>
             <div class="post-actions">
               <button onclick="openPost('${p.id}')" title="Öffnen"><i class="fa-regular fa-comment"></i> Öffnen</button>
-              <button onclick="editCaption('${p.id}', '${encodeURIComponent(p.caption||'')}')" title="Bearbeiten"><i class="fa-regular fa-pen-to-square"></i> Bearbeiten</button>
-              <button onclick="deletePost('${p.id}')" title="Löschen"><i class="fa-regular fa-trash-can"></i> Löschen</button>
+              ${ownerId === CU.id ? `
+                <button onclick="editCaption('${p.id}', '${encodeURIComponent(p.caption||'')}')" title="Bearbeiten"><i class="fa-regular fa-pen-to-square"></i> Bearbeiten</button>
+                <button onclick="deletePost('${p.id}')" title="Löschen"><i class="fa-regular fa-trash-can"></i> Löschen</button>
+              ` : ''}
             </div>
           </div>
         `);
