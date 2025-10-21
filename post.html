@@ -33,14 +33,7 @@
     .viewer .caption{margin:8px 0}
     .viewer .comment-row{display:flex;gap:8px}
     .viewer .comment-row input{flex:1;padding:10px;border:1px solid #dbdbdb;border-radius:6px}
-  
-    @media (max-width:600px){
-      .uploader{padding:12px;}
-      .uploader h2{font-size:18px;}
-      .post-button{width:100%;}
-      .viewer .comment-row input{font-size:16px;} /* avoid iOS zoom */
-    }
-    </style>
+  </style>
 </head>
 <body>
   <!-- Topbar -->
@@ -55,7 +48,7 @@
       <div class="uploader">
         <h2>Neuen Beitrag erstellen</h2>
         <label class="drop" id="dropZone">
-          <input id="fileInput" type="file" accept="image/*" capture="environment">
+          <input id="fileInput" type="file" accept="image/*">
           <div><i class="fa-regular fa-image"></i> Bild auswählen oder hierher ziehen</div>
         </label>
 
