@@ -237,9 +237,9 @@ async function loadPostView(currentUserId, pid){
       });
       if(insErr) throw insErr;
 
-      // Notification für Post-Besitzer (nicht bei eigenem Post)
+      // Notification: nur clientseitig anlegen, wenn kein DB-Trigger verwendet wird
       try{
-        if (currentUserId && currentUserId !== post.user_id) {
+        if(!NOTIF_VIA_DB_TRIGGER && currentUserId && currentUserId !== post.user_id){
           await sb.from('notifications').insert({
             owner_id: post.user_id,
             from_user_id: currentUserId,
@@ -248,9 +248,7 @@ async function loadPostView(currentUserId, pid){
             comment: text
           });
         }
-      }catch(e){ console.warn('Notif insert failed', e); }
-
-      inp.value='';
+      }catch(e){ console.warn('Notif insert skipped/failed', e); }inp.value='';
       // Realtime rendert nach; bei Bedarf: await renderCommentsFromDB(post.id);
     }catch(e){
       console.error(e);
