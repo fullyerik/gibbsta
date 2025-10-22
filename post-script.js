@@ -35,6 +35,107 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
+
+/* -------- DB Helpers for Likes & Saves (persistent) -------- */
+async function userHasLiked(postId, userId){
+  try{
+    const { data, error } = await sb.from('post_likes')
+      .select('post_id')
+      .eq('post_id', postId)
+      .eq('user_id', userId)
+      .limit(1);
+    if(error) throw error;
+    return data && data.length>0;
+  }catch(e){
+    return getLikeStore(userId).some(x=>x.postId===postId);
+  }
+}
+async function userHasSaved(postId, userId){
+  try{
+    const { data, error } = await sb.from('post_saves')
+      .select('post_id')
+      .eq('post_id', postId)
+      .eq('user_id', userId)
+      .limit(1);
+    if(error) throw error;
+    return data && data.length>0;
+  }catch(e){
+    return getSaveStore(userId).some(x=>x.postId===postId);
+  }
+}
+async function likeCountDB(postId){
+  try{
+    const { data, error } = await sb.from('post_likes')
+      .select('post_id')
+      .eq('post_id', postId);
+    if(error) throw error;
+    return (data||[]).length;
+  }catch(e){
+    return likeCountOf(postId);
+  }
+}
+async function toggleLikeDBSingle(postId, ownerId, currentUserId){
+  try{
+    const { data: existing } = await sb.from('post_likes')
+      .select('post_id')
+      .eq('post_id', postId)
+      .eq('user_id', currentUserId)
+      .limit(1);
+    if(existing && existing.length){
+      await sb.from('post_likes').delete().eq('post_id', postId).eq('user_id', currentUserId);
+      return { liked:false, delta:-1 };
+    }else{
+      await sb.from('post_likes').insert({ post_id: postId, user_id: currentUserId });
+      try{
+        if(currentUserId && currentUserId !== ownerId){
+          await sb.from('notifications').insert({
+            owner_id: ownerId,
+            from_user_id: currentUserId,
+            type: 'like',
+            post_id: postId
+          });
+        }
+      }catch(_){}
+      return { liked:true, delta:+1 };
+    }
+  }catch(e){
+    const arr = getLikeStore(currentUserId);
+    const already = arr.some(x=>x.postId===postId);
+    if(already){
+      setLikeStore(currentUserId, arr.filter(x=>x.postId!==postId));
+      return { liked:false, delta:-1 };
+    }else{
+      setLikeStore(currentUserId, [...arr, {postId, at:Date.now()}]);
+      return { liked:true, delta:+1 };
+    }
+  }
+}
+async function toggleSaveDBSingle(postId, currentUserId){
+  try{
+    const { data: existing } = await sb.from('post_saves')
+      .select('post_id')
+      .eq('post_id', postId)
+      .eq('user_id', currentUserId)
+      .limit(1);
+    if(existing && existing.length){
+      await sb.from('post_saves').delete().eq('post_id', postId).eq('user_id', currentUserId);
+      return false;
+    }else{
+      await sb.from('post_saves').insert({ post_id: postId, user_id: currentUserId });
+      return true;
+    }
+  }catch(e){
+    const arr = getSaveStore(currentUserId);
+    const already = arr.some(x=>x.postId===postId);
+    if(already){
+      setSaveStore(currentUserId, arr.filter(x=>x.postId!==postId));
+      return false;
+    }else{
+      setSaveStore(currentUserId, [...arr, {postId, at:Date.now()}]);
+      return true;
+    }
+  }
+}
 /* ===== VIEW ===== */
 async function loadPostView(currentUserId, pid){
   // Post laden (id ist UUID → String verwenden)
@@ -60,9 +161,9 @@ async function loadPostView(currentUserId, pid){
 
   // UI füllen
   const imgUrl = publicUrl(post.image_path);
-  const liked = isLiked(currentUserId, post.id);
-  const saved = getSaveStore(currentUserId).some(x=>x.postId===post.id);
-  const likeCount = likeCountOf(post.id);
+  const liked = await userHasLiked(post.id, currentUserId);
+  const saved = await userHasSaved(post.id, currentUserId);
+  const likeCount = await likeCountDB(post.id);
 
   document.getElementById('viewUname').textContent = '@'+uname;
   document.getElementById('viewAvatar').src = avatar;
@@ -87,52 +188,38 @@ async function loadPostView(currentUserId, pid){
       .subscribe();
   }catch(e){ console.warn('Realtime nicht aktiv?', e); }
 
-  // Like (lokal)
-  document.getElementById('likeBtn').onclick = async ()=>{
-    let cnt = likeCountOf(post.id);
-    if(isLiked(currentUserId, post.id)){
-      const arr = getLikeStore(currentUserId);
-      if(arr.some(x=>x.postId===post.id)){
-        setLikeStore(currentUserId, arr.filter(x=>x.postId!==post.id));
-        cnt = Math.max(0, cnt-1);
-        setLikeCount(post.id, cnt);
-        likeIcon.classList.remove('fa-solid'); likeIcon.classList.add('fa-regular');
-      }
-    }else{
-      const arr = getLikeStore(currentUserId);
-      if(!arr.some(x=>x.postId===post.id)){
-        arr.push({ postId: post.id, at: Date.now() });
-        setLikeStore(currentUserId, arr);
-        cnt = cnt+1;
-        setLikeCount(post.id, cnt);
-        likeIcon.classList.remove('fa-regular'); likeIcon.classList.add('fa-solid');
+  // Realtime: Likes dieses Posts
+  try{
+    sb.channel('likes_post_'+post.id)
+      .on('postgres_changes', { event:'*', schema:'public', table:'post_likes', filter:`post_id=eq.${post.id}` }, async () => {
+        const [liked, cnt] = await Promise.all([userHasLiked(post.id, currentUserId), likeCountDB(post.id)]);
+        const likeIcon = document.getElementById('likeBtn').querySelector('i');
+        likeIcon.classList.toggle('fa-solid', liked);
+        likeIcon.classList.toggle('fa-regular', !liked);
+        document.getElementById('likesCount').textContent = String(cnt);
+      })
+      .subscribe();
+  }catch(e){ console.warn('Realtime Likes nicht aktiv?', e); }
 
-        // Mitteilung an Post-Besitzer in DB (falls Liker != Owner)
-        try{
-          if (currentUserId && currentUserId !== post.user_id) {
-            await sb.from('notifications').insert({
-              owner_id: post.user_id,
-              from_user_id: currentUserId,
-              type: 'like',
-              post_id: post.id
-            });
-          }
-        }catch(e){
-          console.warn('Notif insert failed', e);
-        }
-      }
-    }
-    document.getElementById('likesCount').textContent = String(cnt);
+  // Like (DB + Realtime)
+  document.getElementById('likeBtn').onclick = async ()=>{
+    const likeIcon = document.getElementById('likeBtn').querySelector('i');
+    const countEl = document.getElementById('likesCount');
+    let cnt = parseInt((countEl?.textContent||'0'), 10);
+
+    const res = await toggleLikeDBSingle(post.id, post.user_id, currentUserId);
+    cnt = Math.max(0, cnt + res.delta);
+    if(countEl) countEl.textContent = String(cnt);
+    likeIcon.classList.toggle('fa-solid', res.liked);
+    likeIcon.classList.toggle('fa-regular', !res.liked);
   };
 
-  // Save (lokal)
-  document.getElementById('saveBtn').onclick = ()=>{
-    const already = getSaveStore(currentUserId).some(x=>x.postId===post.id);
-    let arr = getSaveStore(currentUserId).filter(x=>x.postId!==post.id);
-    if(!already) arr = [...getSaveStore(currentUserId), { postId: post.id, at: Date.now() }];
-    setSaveStore(currentUserId, arr);
-    saveIcon.classList.toggle('fa-solid', !already);
-    saveIcon.classList.toggle('fa-regular', already);
+  // Save (DB)
+  document.getElementById('saveBtn').onclick = async ()=>{
+    const saveIcon = document.getElementById('saveBtn').querySelector('i');
+    const nowSaved = await toggleSaveDBSingle(post.id, currentUserId);
+    saveIcon.classList.toggle('fa-solid', nowSaved);
+    saveIcon.classList.toggle('fa-regular', !nowSaved);
   };
 
   // Kommentar senden → DB (+ Notification)
@@ -150,9 +237,9 @@ async function loadPostView(currentUserId, pid){
       });
       if(insErr) throw insErr;
 
-      // Notification für Post-Besitzer (nicht bei eigenem Post)
+      // Notification: nur clientseitig anlegen, wenn kein DB-Trigger verwendet wird
       try{
-        if (currentUserId && currentUserId !== post.user_id) {
+        if(!NOTIF_VIA_DB_TRIGGER && currentUserId && currentUserId !== post.user_id){
           await sb.from('notifications').insert({
             owner_id: post.user_id,
             from_user_id: currentUserId,
@@ -161,9 +248,7 @@ async function loadPostView(currentUserId, pid){
             comment: text
           });
         }
-      }catch(e){ console.warn('Notif insert failed', e); }
-
-      inp.value='';
+      }catch(e){ console.warn('Notif insert skipped/failed', e); }inp.value='';
       // Realtime rendert nach; bei Bedarf: await renderCommentsFromDB(post.id);
     }catch(e){
       console.error(e);
