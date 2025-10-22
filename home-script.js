@@ -142,7 +142,6 @@ async function toggleSaveDB(postId){
     return !already;
   }
 }
-const NOTIF_VIA_DB_TRIGGER = true;
 const notif = {
   async push({ownerId, type, fromUserId, postId, comment}) {
     if(!ownerId || !fromUserId) return;

@@ -5,230 +5,343 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Gibbsta – Mitteilungen</title>
 
-  <link rel="stylesheet" href="home-styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-
-  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    const SUPABASE_URL="https://sdmlprsgxgrnzoqvgyqz.supabase.co";
-    const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbWxwcnNneGdybnpvcXZneXF6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDMyMDk4NiwiZXhwIjoyMDc1ODk2OTg2fQ.rWp3zL2V37X76_PdQAq-pw4uSzpOIyeQ9l3bjEC7tCM";
-    window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    function publicUrl(path){ return sb.storage.from('images').getPublicUrl(path).data.publicUrl; }
-  </script>
 
   <style>
     :root{
-      --card:#fff;
-      --muted:#8e8e8e;
       --border:#dbdbdb;
-      --brand:#0095f6;
+      --muted:#8e8e8e;
       --bg:#fafafa;
+      --card:#fff;
+      --accent:#0095f6;
       --unread:#f6f8ff;
     }
     *{box-sizing:border-box}
-    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:#262626;margin:0}
-    .wrap{max-width:720px;margin:80px auto 110px;padding:0 16px}
-    .top-nav{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--border);padding:10px 16px;z-index:50}
-    .top-nav .back-btn{position:absolute;left:10px;top:10px}
-    .top-nav .centered{display:block;margin:0 auto;height:32px}
-    .controls{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:12px}
-    .controls h2{margin:0;font-size:20px}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:#1a1a1a;margin:0}
+    a{color:inherit;text-decoration:none}
+
+    .top-nav{position:fixed;top:0;left:0;right:0;height:60px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:center;z-index:100}
+    .nav-logo{height:40px;object-fit:contain}
+
+    main.wrap{max-width:720px;margin:80px auto 100px;padding:0 16px}
+    .head{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .head h2{margin:0;font-size:20px}
+    .tools{display:flex;gap:8px;flex-wrap:wrap}
     .btn{border:1px solid var(--border);background:#fff;border-radius:10px;padding:8px 12px;cursor:pointer;font-weight:700}
-    .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
-    .btn.danger{border-color:#ef4444;color:#ef4444}
-    #list{display:flex;flex-direction:column;gap:8px}
-    .notif{display:grid;grid-template-columns:54px 1fr auto;gap:10px;align-items:center;border:1px solid var(--border);border-radius:12px;background:var(--card);padding:10px}
+    .btn[disabled]{opacity:.6;cursor:not-allowed}
+    .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+    .list{display:flex;flex-direction:column;gap:10px}
+    .notif{display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px}
     .notif.unread{background:var(--unread)}
-    .ava{width:54px;height:54px;border-radius:10px;object-fit:cover;border:1px solid #ddd}
+    .ava{width:52px;height:52px;border-radius:50%;object-fit:cover;border:1px solid #e0e0e0;cursor:pointer}
     .meta{display:flex;flex-direction:column;gap:4px;min-width:0}
     .line{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .time{color:var(--muted);font-size:12px}
-    .actions{display:flex;gap:8px}
-    .alink{all:unset;color:#262626;cursor:pointer}
-    .alink:hover{text-decoration:underline}
-    .empty{text-align:center;color:var(--muted);margin-top:20px}
+    .time{font-size:12px;color:var(--muted)}
+    .thumb{width:56px;height:56px;border-radius:10px;object-fit:cover;border:1px solid #e0e0e0;cursor:pointer}
+    .empty{text-align:center;color:var(--muted);margin-top:24px}
+
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);padding:16px 0;z-index:100}
+    .nav-container{max-width:500px;margin:0 auto;display:flex;justify-content:space-around;align-items:center}
+    .nav-item{background:none;border:none;cursor:pointer;width:48px;height:48px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+    .plus-btn{width:35px;height:35px;border:2px solid #262626;border-radius:4px}
+    .nav-item svg{width:24px;height:24px;color:#262626}
+
+    /* (optional) versteckte Badge-Platzhalter */
+    .notifications{position:relative;background:none;border:none;cursor:pointer;font-size:20px;margin:0 6px}
+    #navNotifBadge,#navMsgBadge{position:absolute;top:-6px;right:-8px;background:#ed4956;color:#fff;font-size:11px;border-radius:10px;min-width:18px;height:18px;display:none;align-items:center;justify-content:center;padding:0 5px}
   </style>
 </head>
 <body>
-  <!-- Topbar -->
   <header class="top-nav">
-    <button onclick="history.back()" class="btn back-btn" title="Zurück">←</button>
-    <img class="nav-logo centered" src="https://i.ibb.co/Q7mG5wr3/Gibbsta-Logo-Haupt.png" alt="Gibbsta">
+    <img class="nav-logo" src="https://i.ibb.co/Q7mG5wr3/Gibbsta-Logo-Haupt.png" alt="Gibbsta">
   </header>
 
   <main class="wrap">
-    <div class="controls">
+    <div class="head">
       <h2>Mitteilungen</h2>
-      <div class="actions">
-        <button id="markAllBtn" class="btn primary">Alle als gelesen</button>
-        <button id="clearAllBtn" class="btn danger">Alles löschen</button>
+      <div class="tools">
+        <button class="btn" id="markAll">Alles als gelesen</button>
+        <button class="btn" id="clearAll">Alle löschen</button>
+        <button class="btn primary" id="refresh">Aktualisieren</button>
       </div>
     </div>
 
-    <section id="list"></section>
-    <p id="empty" class="empty" style="display:none">Noch keine Mitteilungen.</p>
+    <div id="list" class="list"></div>
+    <p id="empty" class="empty" style="display:none">Keine Mitteilungen</p>
   </main>
 
-  <!-- Bottom Navigation -->
   <nav class="bottom-nav">
     <div class="nav-container">
-      <button class="nav-item" onclick="location.href='home.html'">
+      <button class="nav-item" onclick="location.href='home.html'" title="Home">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
       </button>
-      <button class="nav-item" onclick="location.href='search.html'">
+      <button class="nav-item" onclick="location.href='search.html'" title="Suche">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       </button>
-      <button class="nav-item plus-btn" onclick="location.href='post.html'">
+      <button class="nav-item plus-btn" onclick="location.href='post.html'" title="Posten">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       </button>
-      <button class="nav-item" onclick="location.href='homepage.html'">
+      <button class="nav-item" onclick="location.href='homepage.html'" title="Profil">
         <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M12 14c-4.5 0-8 2.5-8 5v1h16v-1c0-2.5-3.5-5-8-5z"/></svg>
       </button>
     </div>
   </nav>
 
   <script>
-    let CU = null; // current user
-    const fmt = new Intl.DateTimeFormat('de-CH', { dateStyle:'medium', timeStyle:'short' });
+    // ===== Supabase Setup =====
+    const SUPABASE_URL = "https://sdmlprsgxgrnzoqvgyqz.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkbWxwcnNneGdybnpvcXZneXF6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDMyMDk4NiwiZXhwIjoyMDc1ODk2OTg2fQ.rWp3zL2V37X76_PdQAq-pw4uSzpOIyeQ9l3bjEC7tCM";
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    function publicUrl(path){ return sb.storage.from('images').getPublicUrl(path).data.publicUrl; }
 
-    // Minimal Notif-API (kompatibel mit deiner DB-Struktur)
-    const notif = {
-      async listForUser(uid){
-        const { data, error } = await sb
-          .from('notifications')
-          .select('id, owner_id, from_user_id, type, post_id, comment, read, created_at')
-          .eq('owner_id', uid)
-          .order('created_at', { ascending:false });
-        if(error){ console.error(error); return []; }
-        return data || [];
-      },
-      async markAllRead(uid){
-        const { error } = await sb.from('notifications').update({ read: true }).eq('owner_id', uid);
-        if(error) console.error(error);
-      },
-      async clearAll(uid){
-        const { error } = await sb.from('notifications').delete().eq('owner_id', uid);
-        if(error) console.error(error);
-      }
-    };
-
-    function isUUID(v){
-      return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v||"").trim());
-    }
-
-    async function fetchProfilesMap(userIds){
-      if(!userIds || !userIds.length) return { byId:{}, fallback:'https://via.placeholder.com/48/dbdbdb/262626?text=+' };
-      const ids=[...new Set(userIds.filter(Boolean))];
-      const { data, error } = await sb.from('profiles').select('id, username, avatar_url, avatar_path').in('id', ids);
-      if(error){ console.warn('profiles', error); }
-      const map={};
-      for(const p of (data||[])){
-        const avatar = p.avatar_url || (p.avatar_path ? publicUrl(p.avatar_path) : '');
-        map[p.id] = {
-          username: p.username || (p.id ? p.id.slice(0,8) : 'user'),
-          avatar: avatar || 'https://via.placeholder.com/54/dbdbdb/262626?text=+'
-        };
-      }
-      return { byId: map, fallback: 'https://via.placeholder.com/54/dbdbdb/262626?text=+' };
-    }
-
-    function iconFor(type){
-      if(type==='comment') return '<i class="fa-regular fa-comment"></i>';
-      if(type==='like') return '<i class="fa-regular fa-heart"></i>';
-      if(type==='follow') return '<i class="fa-solid fa-user-plus"></i>';
-      return '<i class="fa-regular fa-bell"></i>';
-    }
-    function textFor(n, prof){
-      const uname = prof?.username ? '@'+prof.username : 'Jemand';
-      switch(n.type){
-        case 'comment': return `${uname} hat deinen Beitrag kommentiert: "${n.comment || ''}"`;
-        case 'like':    return `${uname} gefällt dein Beitrag`;
-        case 'follow':  return `${uname} folgt dir jetzt`;
-        default:        return `${uname} hat eine Aktion ausgeführt`;
-      }
-    }
-
+    // ===== Helpers =====
+    function escapeHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
     function timeAgo(ts){
-      const d = new Date(ts);
-      const diff = Date.now() - d.getTime();
-      const sec = Math.floor(diff/1000);
-      if (sec < 60) return 'gerade eben';
-      const min = Math.floor(sec/60);
-      if (min < 60) return `${min} min`;
-      const hr = Math.floor(min/60);
-      if (hr < 24) return `${hr} h`;
-      const day = Math.floor(hr/24);
-      if (day < 7) return `${day} Tage`;
-      return fmt.format(d);
+      const d=(Date.now()-new Date(ts))/60000;
+      if(d<1) return 'gerade eben';
+      if(d<60) return Math.floor(d)+'m';
+      if(d<1440) return Math.floor(d/60)+'h';
+      return Math.floor(d/1440)+'d';
     }
+    function openPost(id){ location.href = 'post.html?id='+encodeURIComponent(id); }
+    function openProfile(uid){ location.href = 'homepage.html?uid='+encodeURIComponent(uid); }
 
-    function notifItem(n, prof){
-      const avatar = prof?.avatar || 'https://via.placeholder.com/54/dbdbdb/262626?text=+';
-      const uname  = prof?.username || (n.from_user_id ? n.from_user_id.slice(0,8) : 'user');
-      const userHref = `profile.html?uid=${encodeURIComponent(n.from_user_id)}`;
-      const postHref = n.post_id != null ? `post.html?id=${encodeURIComponent(n.post_id)}` : null;
+    // ===== Global State =====
+    let CU = null;      // aktueller User
+    let LAST_IDS = [];  // IDs der aktuell sichtbaren Mitteilungen
 
-      return `
-      <article class="notif ${!n.read ? 'unread':''}" data-id="${n.id}">
-        <img class="ava" src="${avatar}" alt="@${uname}" onerror="this.src='https://via.placeholder.com/54/dbdbdb/262626?text=+'"/>
-        <div class="meta">
-          <div class="line">${iconFor(n.type)} <a class="alink" href="${userHref}">@${uname}</a> <span> ${textFor(n, prof).replace('@'+uname,'').trim()}</span> ${postHref ? ` – <a class="alink" href="${postHref}">Zum Beitrag</a>` : ``}</div>
-          <div class="time">${timeAgo(n.created_at)}</div>
-        </div>
-        <div>
-          <!-- optional single delete later -->
-        </div>
-      </article>`;
-    }
-
-    async function render(){
-      const list = document.getElementById('list');
-      const empty = document.getElementById('empty');
-      list.innerHTML = '<div class="empty">Lade…</div>';
-
-      const rows = await notif.listForUser(CU.id);
-      if(!rows.length){
-        list.innerHTML='';
-        empty.style.display='block';
-        return;
+    // robust: User ermitteln
+    async function ensureUser() {
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        if (session?.user) return session.user;
+        const { data: { user } } = await sb.auth.getUser();
+        return user || null;
+      } catch (e) {
+        console.error('Auth error:', e);
+        return null;
       }
-      empty.style.display='none';
-
-      const uids = rows.map(r=>r.from_user_id).filter(Boolean);
-      const profs = await fetchProfilesMap(uids);
-
-      list.innerHTML = rows.map(r => notifItem(r, profs.byId[r.from_user_id])).join('');
     }
 
-    async function init(){
-      const u = (await sb.auth.getUser()).data.user;
-      if(!u){ location.href='index.html'; return; }
-      CU = u;
+    // ===== Daten laden (OHNE DEDUPE!) =====
+    async function fetchAllNotifications(uid){
+      const { data, error } = await sb
+        .from('notifications')
+        .select('id, owner_id, from_user_id, type, post_id, comment, read, created_at')
+        .eq('owner_id', uid)
+        .order('created_at', { ascending:false });
+      if(error){
+        console.error('fetchAllNotifications error:', error);
+        return [];
+      }
+      return data || [];
+    }
 
-      // Buttons
-      document.getElementById('markAllBtn').onclick = async ()=>{
-        await notif.markAllRead(CU.id);
-        await render();
-      };
-      document.getElementById('clearAllBtn').onclick = async ()=>{
-        if(confirm('Wirklich alle Mitteilungen löschen?')){
-          await notif.clearAll(CU.id);
-          await render();
+    async function enrich(notifs){
+      if(!notifs.length) return { rows:[], profiles:{}, posts:{} };
+
+      const fromIds = [...new Set(notifs.map(n=>n.from_user_id).filter(Boolean))];
+      const postIds = [...new Set(notifs.map(n=>n.post_id).filter(Boolean))];
+
+      let profiles = {};
+      if(fromIds.length){
+        const { data: profs } = await sb
+          .from('profiles')
+          .select('id, username, avatar_url, avatar_path')
+          .in('id', fromIds);
+        (profs||[]).forEach(p=>{
+          profiles[p.id] = {
+            username: p.username || (p.id ? p.id.slice(0,8) : 'user'),
+            avatar: p.avatar_url || (p.avatar_path ? publicUrl(p.avatar_path) : 'https://via.placeholder.com/56/dbdbdb/262626?text=+')
+          };
+        });
+      }
+
+      let posts = {};
+      if(postIds.length){
+        const { data: postRows } = await sb
+          .from('posts')
+          .select('id, image_path')
+          .in('id', postIds);
+        (postRows||[]).forEach(p=>{
+          posts[p.id] = { thumb: p.image_path ? publicUrl(p.image_path) : '' };
+        });
+      }
+
+      return { rows: notifs, profiles, posts };
+    }
+
+    function render(enriched){
+      const list = document.getElementById('list');
+      list.innerHTML = '';
+      const rows = enriched.rows||[];
+      document.getElementById('empty').style.display = rows.length ? 'none' : 'block';
+
+      // **ALLE** sichtbaren IDs merken (keine Dedupe mehr)
+      LAST_IDS = rows.map(r => r.id);
+
+      for(const n of rows){
+        const prof = enriched.profiles[n.from_user_id] || { username: 'user', avatar:'https://via.placeholder.com/56/dbdbdb/262626?text=+' };
+        const post = (n.post_id && enriched.posts[n.post_id]) ? enriched.posts[n.post_id] : { thumb:'' };
+
+        let line = '';
+        if(n.type === 'like'){
+          line = `<b>@${escapeHtml(prof.username)}</b> hat deinen Post geliked`;
+        }else if(n.type === 'comment'){
+          const c = (n.comment||'').trim();
+          line = `<b>@${escapeHtml(prof.username)}</b> hat kommentiert: ${escapeHtml(c)}`;
+        }else{
+          line = `<b>@${escapeHtml(prof.username)}</b> – ${escapeHtml(n.type||'Mitteilung')}`;
         }
-      };
 
-      await render();
+        const html = `
+          <div class="notif ${n.read ? '' : 'unread'}" data-id="${n.id}">
+            <img class="ava" src="${prof.avatar}" alt="@${escapeHtml(prof.username)}" onclick="openProfile('${n.from_user_id}')" title="@${escapeHtml(prof.username)}">
+            <div class="meta">
+              <div class="line">${line}</div>
+              <div class="time">${timeAgo(n.created_at)}</div>
+            </div>
+            ${post.thumb ? `<img class="thumb" src="${post.thumb}" alt="Post" onclick="openPost('${n.post_id}')" title="Zum Post">` : ''}
+          </div>
+        `;
+        list.insertAdjacentHTML('beforeend', html);
+      }
+    }
 
-      // Realtime (optional – aktualisiert Liste bei neuen Einträgen)
+    // Badge: jetzt „echte“ ungelesene (ohne Dedupe) zählen, damit es zu dieser Liste passt
+    async function setBadges(uid){
+      const notifBadge = document.getElementById('navNotifBadge');
+      if(notifBadge){
+        const { count, error } = await sb
+          .from('notifications')
+          .select('*', { count:'exact', head:true })
+          .eq('owner_id', uid)
+          .eq('read', false);
+        const c = error ? 0 : (count||0);
+        notifBadge.style.display = c>0 ? 'flex' : 'none';
+        notifBadge.textContent = c>99 ? '99+' : String(c);
+      }
+      const msgBadge = document.getElementById('navMsgBadge');
+      if(msgBadge){
+        const { count, error } = await sb
+          .from('messages')
+          .select('*', { count:'exact', head:true })
+          .eq('to_user_id', uid)
+          .eq('read', false);
+        const c = error ? 0 : (count||0);
+        msgBadge.style.display = c>0 ? 'flex' : 'none';
+        msgBadge.textContent = c>99 ? '99+' : String(c);
+      }
+    }
+
+    async function reload(){
+      if(!CU) return;
+      const all = await fetchAllNotifications(CU.id); // keine Dedupe
+      const enriched = await enrich(all);
+      render(enriched);
+      await setBadges(CU.id);
+    }
+
+    // ===== Aktionen =====
+    async function markAllRead(uid){
+      const { error } = await sb
+        .from('notifications')
+        .update({ read: true })
+        .eq('owner_id', uid)
+        .eq('read', false)
+        .select('id'); // auf Commit warten
+      if(error){
+        console.error('markAllRead error:', error);
+        throw error;
+      }
+      document.querySelectorAll('.notif.unread').forEach(n=>n.classList.remove('unread'));
+      await setBadges(uid);
+    }
+
+    async function clearAll(uid){
+      if(!LAST_IDS.length) return;
+      const { error } = await sb
+        .from('notifications')
+        .delete()
+        .in('id', LAST_IDS);
+      if(error){
+        console.error('clearAll error:', error);
+        throw error;
+      }
+      document.getElementById('list').innerHTML = '';
+      document.getElementById('empty').style.display = 'block';
+      LAST_IDS = [];
+      await setBadges(uid);
+    }
+
+    // ===== Init =====
+    document.addEventListener('DOMContentLoaded', async ()=>{
+      CU = await ensureUser();
+      if(!CU){ location.href='index.html'; return; }
+
+      await reload();
+
+      const refreshBtn = document.getElementById('refresh');
+      const markAllBtn = document.getElementById('markAll');
+      const clearAllBtn = document.getElementById('clearAll');
+
+      if(refreshBtn){
+        refreshBtn.addEventListener('click', async ()=>{
+          try{
+            refreshBtn.disabled = true;
+            await reload();
+          } finally {
+            refreshBtn.disabled = false;
+          }
+        });
+      }
+
+      if(markAllBtn){
+        markAllBtn.addEventListener('click', async ()=>{
+          try{
+            markAllBtn.disabled = true;
+            await markAllRead(CU.id);
+          } catch(e){
+            alert('Konnte nicht als gelesen markieren. Bitte Konsole prüfen.');
+          } finally {
+            markAllBtn.disabled = false;
+          }
+        });
+      }
+
+      if(clearAllBtn){
+        clearAllBtn.addEventListener('click', async ()=>{
+          if(!confirm('Nur die aktuell angezeigten Mitteilungen löschen?')) return;
+          try{
+            clearAllBtn.disabled = true;
+            await clearAll(CU.id);
+          } catch(e){
+            alert('Konnte nicht löschen. Bitte Konsole prüfen.');
+          } finally {
+            clearAllBtn.disabled = false;
+          }
+        });
+      }
+
+      // Realtime: jedes neue Ereignis hinzufügen (ohne Dedupe)
       try{
-        sb.channel('notifications_'+CU.id)
-          .on('postgres_changes', {event:'*', schema:'public', table:'notifications', filter:`owner_id=eq.${CU.id}`}, render)
+        sb.channel('notif_'+CU.id)
+          .on('postgres_changes', {event:'*', schema:'public', table:'notifications', filter:`owner_id=eq.${CU.id}`}, async ()=>{
+            await reload();
+          })
           .subscribe();
       }catch(e){ console.warn('Realtime nicht aktiv?', e); }
-    }
-
-    document.addEventListener('DOMContentLoaded', init);
+    });
   </script>
+
+  <!-- optionale Badge-Elemente (falls du im Header Badges anzeigen willst) -->
+  <button id="notifBtn" class="notifications" style="display:none">
+    <span id="navNotifBadge">0</span>
+  </button>
+  <button id="msgBtn" class="notifications" style="display:none">
+    <span id="navMsgBadge">0</span>
+  </button>
 </body>
 </html>
